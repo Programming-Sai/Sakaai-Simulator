@@ -7,9 +7,9 @@ class SupportedFileType(str, Enum):
     docx = "docx"
     txt = "txt"
     md = "md"
-    png = "png"
-    jpg = "jpg"
-    jpeg = "jpeg"
+    # png = "png"
+    # jpg = "jpg"
+    # jpeg = "jpeg"
 
 class HealthResponse(BaseModel):
     status: Literal["healthy", "unhealthy"]
@@ -31,10 +31,8 @@ class MCQQuiz(QuizBase):
     
     @model_validator(mode="after")
     def answer_must_be_in_choices(cls, values):
-        answer = values.get('answer')
-        choices = values.get('choices')
-        if answer not in choices:
-            raise ValueError(f"Answer '{answer}' is not in choices {choices}")
+        if values.answer not in values.choices:
+            raise ValueError(f"Answer '{values.answer}' is not in choices {values.choices}")
         return values
 
 
@@ -45,8 +43,8 @@ class SATAQuiz(QuizBase):
     
     @model_validator(mode="after")
     def all_answers_must_be_in_choices(cls, values):
-        answers = values.get('answer', [])
-        choices = values.get('choices', [])
+        answers = values.answer
+        choices = values.choices
         invalid = [a for a in answers if a not in choices]
         if invalid:
             raise ValueError(f"The following answers are not in choices: {invalid}")

@@ -8,7 +8,7 @@ async def generate_quizzes_from_text_or_file(prompt: str, file=None):
         validate_file(file)
         file_text = get_text_from_file(file)
 
-    text_to_generate_from = prompt.strip() if prompt and prompt.strip() else file_text
+    text_to_generate_from = prompt.strip() if not file_text else prompt.strip() + "\n\n" +file_text
 
     if not text_to_generate_from:
         raise ValueError("No content to generate from.")
@@ -16,4 +16,11 @@ async def generate_quizzes_from_text_or_file(prompt: str, file=None):
     # Now for the actual implementation of the llm logic.
 
     # Placeholder - Replace with actual generation later
-    return [{"question": f"What is based on: {text_to_generate_from[:30]}...?", "answer": "TBD"}]
+    return [{
+        "type": "mcq",
+        "question": f"What is based on: {text_to_generate_from}...?",
+        "choices": ["Option A", "Option B", "Option C", "Option D"],
+        "answer": "Option A",
+        "explanation": "This is just a placeholder explanation."
+    }]
+

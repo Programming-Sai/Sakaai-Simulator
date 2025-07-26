@@ -1,7 +1,12 @@
 import os
 import tempfile
 from fastapi import UploadFile
-from langchain.document_loaders import UnstructuredFileLoader
+from langchain_community.document_loaders import UnstructuredFileLoader
+
+
+
+
+
 
 def get_text_from_file(file: UploadFile) -> str:
     # Save to a temporary file
