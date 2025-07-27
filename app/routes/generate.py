@@ -15,4 +15,4 @@ async def generate_quiz(
         raise HTTPException(status_code=400, detail="Either prompt or file must be provided.")
 
     quizzes = await generate_quizzes_from_text_or_file(prompt=prompt, file=file)
-    return {"quizzes": quizzes}
+    return quizzes

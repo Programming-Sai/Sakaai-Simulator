@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "EssayQuiz": {
+      "properties": {
+        "type": { "const": "essay", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "keywords": {
+          "items": { "type": "string" },
+          "title": "Keywords",
+          "type": "array"
+        }
+      },
+      "required": ["type", "question", "keywords"],
+      "title": "EssayQuiz",
+      "type": "object"
+    },
+    "FITBKeywordQuiz": {
+      "properties": {
+        "type": { "const": "fitb", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "keywords": {
+          "items": { "type": "string" },
+          "title": "Keywords",
+          "type": "array"
+        }
+      },
+      "required": ["type", "question", "keywords"],
+      "title": "FITBKeywordQuiz",
+      "type": "object"
+    },
+    "FITBSimpleQuiz": {
+      "properties": {
+        "type": { "const": "fitb", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "answer": { "title": "Answer", "type": "string" }
+      },
+      "required": ["type", "question", "answer"],
+      "title": "FITBSimpleQuiz",
+      "type": "object"
+    },
+    "MCQQuiz": {
+      "properties": {
+        "type": { "const": "mcq", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "choices": {
+          "items": { "type": "string" },
+          "title": "Choices",
+          "type": "array"
+        },
+        "answer": { "title": "Answer", "type": "string" }
+      },
+      "required": ["type", "question", "choices", "answer"],
+      "title": "MCQQuiz",
+      "type": "object"
+    },
+    "SATAQuiz": {
+      "properties": {
+        "type": { "const": "sata", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "choices": {
+          "items": { "type": "string" },
+          "title": "Choices",
+          "type": "array"
+        },
+        "answer": {
+          "items": { "type": "string" },
+          "title": "Answer",
+          "type": "array"
+        }
+      },
+      "required": ["type", "question", "choices", "answer"],
+      "title": "SATAQuiz",
+      "type": "object"
+    },
+    "TFQuiz": {
+      "properties": {
+        "type": { "const": "tf", "title": "Type", "type": "string" },
+        "question": { "title": "Question", "type": "string" },
+        "explanation": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "default": null,
+          "title": "Explanation"
+        },
+        "answer": { "title": "Answer", "type": "boolean" }
+      },
+      "required": ["type", "question", "answer"],
+      "title": "TFQuiz",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "quizzes": {
+      "items": {
+        "anyOf": [
+          { "$ref": "#/$defs/MCQQuiz" },
+          { "$ref": "#/$defs/SATAQuiz" },
+          { "$ref": "#/$defs/TFQuiz" },
+          { "$ref": "#/$defs/FITBSimpleQuiz" },
+          { "$ref": "#/$defs/FITBKeywordQuiz" },
+          { "$ref": "#/$defs/EssayQuiz" }
+        ]
+      },
+      "title": "Quizzes",
+      "type": "array"
+    }
+  },
+  "required": ["quizzes"],
+  "title": "QuizGenerationResponse",
+  "type": "object"
+}
