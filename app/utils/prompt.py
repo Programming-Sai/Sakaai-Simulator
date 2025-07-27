@@ -54,7 +54,7 @@ PARAMETER_GLOSSARY: Dict[str, Dict[str, Any]] = {
 }
 
 
-def get_system_prompt() -> str:
+def get_system_prompt(num_questions=None, num_choices=None, quiz_type=None) -> str:
     """
     Returns the system prompt embedding the full JSON schema and glossary.
     """
@@ -85,15 +85,25 @@ You are an AI Quiz Generator. You MUST output **exactly** valid JSON matching th
   - "sata" → SATAQuiz  
   - "tf" → TFQuiz  
   - "fitb" → FITBSimpleQuiz or FITBKeywordQuiz  
-  - "essay" → EssayQuiz  
+  - "essay" → EssayQuiz 
+
+  {"These are the Quiz type(s) you MUST follow to the latter: " + ', '.join(quiz_type) if quiz_type else ''} 
 
 **RULES:**
-1. **Do not** output any fields or values outside the given schema.
-2. If "file_intent" is "existing_quiz", parse and convert only; do not generate new questions.
-3. If "quiz_type" is provided, generate only those types.
-4. If "quiz_type" is missing, infer from source material.
-5. Always honor "answer_required" and "explanation_required".
-6. Do not ask clarifying questions; assume inputs are correct.
+- **Do not** output any fields or values outside the given schema.
+- If "file_intent" is "existing_quiz", parse and convert only; do not generate new questions.
+- If "quiz_type" is provided, generate only those types.
+- If "quiz_type" is missing, infer from source material.
+- Always honor "answer_required" and "explanation_required".
+- Do not ask clarifying questions; assume inputs are correct.
+{'- Generate AT LEAST ' + str(num_questions) + ' unique questions. NEVER EVER repeat or paraphrase the same question.\n- You must NEVER return fewer than ' + str(num_questions) + 'questions.\n- The output must contain a top-level "questions" list of length >= ' + str(num_questions) + '.' if num_questions else ''}
+{'- Each question must have EXACTLY ' + str(num_choices) + ' choices.' if num_choices else ''}
+- The correct answer must be one of the listed choices.
+- Each question's "question" field MUST be semantically and syntactically unique from all others.
+- Before finalizing, scan all questions and ensure no duplicates or paraphrases.
+- If any repeats are found, regenerate those specific items.
+- For subjective questions such as essays and fill-in-the-blank, ensure the keywords field is comprehensive and representative. Include all acceptable variations, synonyms, key concepts, and important phrases that a correct answer might contain. These keywords will be used to assess responses, so the list must cover as many valid angles as possible.
+
 """.strip()
 
 
@@ -122,7 +132,7 @@ def get_dynamic_prompt(
     if num_questions is not None:
         lines.append(f"Number of Questions: {num_questions}")
     if options_per_question is not None:
-        lines.append(f"Options per Question: {options_per_question}")
+        lines.append(f"Number of options per Question: {options_per_question}")
     if source_material:
         lines.append("Source Material:")
         lines.append(source_material)
@@ -131,7 +141,7 @@ def get_dynamic_prompt(
     if user_additional_instructions:
         lines.append("Additional Instructions:")
         lines.append(user_additional_instructions)
-
+    lines.append(f"\nAnswer Required: {answer_required}\nExplanation Required: {explanation_required}")
     lines.append("\nPlease return only JSON that validates against the schema.")
     return "\n".join(lines)
 
