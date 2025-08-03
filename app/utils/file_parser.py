@@ -50,7 +50,7 @@ async def get_text_from_file(file: UploadFile) -> str:
                 413,
                 f"Extracted text too long: {token_count} tokens (max {MAX_TOKENS})."
             )
-        print("\n\nSource Material.\n", text, "\n\n")
+        # print("\n\nSource Material.\n", text, "\n\n")
         return text
 
     finally:
