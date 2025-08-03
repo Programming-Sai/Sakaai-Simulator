@@ -1,50 +1,61 @@
 import os
 import tempfile
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from langchain_community.document_loaders import UnstructuredFileLoader
-import os
-
+from langchain_community.document_loaders import TextLoader
+import tiktoken
 
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "2"))
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", "10000"))
-
+MAX_TOKENS      = int(os.getenv("MAX_TOKENS", "10000"))
 
 def estimate_tokens(text: str) -> int:
-    import tiktoken
-    enc = tiktoken.get_encoding("cl100k_base")  # Safe fallback
+    enc = tiktoken.get_encoding("cl100k_base")
     try:
-        enc = tiktoken.encoding_for_model("deepseek-llm")  # Assuming tiktoken knows this
-    except:
-        pass  # fallback remains
-    print(len(enc.encode(text)))
+        enc = tiktoken.encoding_for_model("deepseek-llm")
+    except Exception:
+        pass
     return len(enc.encode(text))
 
+async def get_text_from_file(file: UploadFile) -> str:
+    # 1) Read upload into memory, enforce size limit
+    file_bytes = await file.read()
+    size_mb = len(file_bytes) / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        raise HTTPException(413, f"File too large: {size_mb:.2f}MB (max {MAX_FILE_SIZE_MB}MB).")
 
-
-
-
-
-def get_text_from_file(file: UploadFile) -> str:
-    # Save to a temporary file
+    # 2) Dump to a real temp file, so Unstructured can operate on it
     suffix = os.path.splitext(file.filename)[1]
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
-        file_bytes = file.file.read()
-        temp_file.write(file.file.read())
-        temp_filepath = temp_file.name
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(file_bytes)
+        tmp_path = tmp.name
 
     try:
-        file_size_mb = len(file_bytes) / (1024 * 1024)
-        if file_size_mb > MAX_FILE_SIZE_MB:
-            raise ValueError(f"File too large: {file_size_mb:.2f}MB (Limit: {MAX_FILE_SIZE_MB}MB)")
-        
-        loader = UnstructuredFileLoader(temp_filepath)
-        docs = loader.load()
-        text = "\n".join([doc.page_content for doc in docs])
+        # 3) Attempt Unstructured partition
+        try:
+            loader = UnstructuredFileLoader(tmp_path)
+            docs   = loader.load()
+        except ValueError as e:
+            if "not a ZIP archive" in str(e):
+                # fall back to plain-text loader
+                text_loader = TextLoader(tmp_path, encoding="utf-8")
+                docs = text_loader.load()
+            else:
+                raise
 
+        # 4) Concatenate pages and enforce token limit
+        text = "\n\n".join(doc.page_content for doc in docs)
         token_count = estimate_tokens(text)
         if token_count > MAX_TOKENS:
-            raise ValueError(f"Text too long: {token_count} tokens (Limit: {MAX_TOKENS})")
+            raise HTTPException(
+                413,
+                f"Extracted text too long: {token_count} tokens (max {MAX_TOKENS})."
+            )
 
         return text
+
     finally:
-        os.remove(temp_filepath)  # Clean up temp file
+        # 5) Always clean up the temp file
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass

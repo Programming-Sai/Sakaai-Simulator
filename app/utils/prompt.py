@@ -1,4 +1,5 @@
 import json
+import math
 from typing import Optional, List, Literal, Dict, Any
 from pathlib import Path
 from pydantic import BaseModel
@@ -130,7 +131,7 @@ def get_dynamic_prompt(
     else:
         lines.append("(The quiz type has not been specified. Infer the best type based on the material.)")
     if num_questions is not None:
-        lines.append(f"Number of Questions: {num_questions}")
+        lines.append(f"Number of Questions: {math.ceil(1.5 * (num_questions))}")
     if options_per_question is not None:
         lines.append(f"Number of options per Question: {options_per_question}")
     if source_material:
@@ -138,9 +139,19 @@ def get_dynamic_prompt(
         lines.append(source_material)
         if file_intent == "existing_quiz" and not quiz_type:
             lines.append("(The material appears to be an existing quiz. Determine its type automatically, clean it up accordingly and convert only)")
+    if file_intent == "existing_quiz":
+        lines.append(
+            "The provided material is an existing quiz. Your task is to:\n"
+            "1. Parse every question exactly as given.\n"
+            "2. Preserve original question text, answer choices, and correct answers.\n"
+            "3. Fix typos, formatting, and standardize the structure without altering meaning.\n"
+            "4. Return the cleaned quiz in JSON matching the schema.\n"
+            "Do not create new questions, remove existing ones, or change answers."
+        )
     if user_additional_instructions:
         lines.append("Additional Instructions:")
         lines.append(user_additional_instructions)
+    lines.append("\nIMPORTANT: For any \"select all that apply\" questions (type `sata`), always format the `answer` field as a JSON array—even if it has exactly one element.\n")
     lines.append(f"\nAnswer Required: {answer_required}\nExplanation Required: {explanation_required}")
     lines.append("\nPlease return only JSON that validates against the schema.")
     return "\n".join(lines)
