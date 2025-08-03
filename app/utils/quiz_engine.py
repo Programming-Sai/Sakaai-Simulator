@@ -211,9 +211,14 @@ def _get_llm() -> Tuple[ChatGroq, str]:
 # Main generate function
 def generate_quiz(input_data: Dict[str, Any]) -> QuizGenerationResponse:
     # build prompts
+    print(input_data)
     system_prompt = get_system_prompt(
         num_questions=input_data.get("num_questions"),
         num_choices=input_data.get("options_per_question"),
+        quiz_type=input_data.get("quiz_type"),
+        file_intent=input_data.get("file_intent"),
+        answer_required=input_data.get("answer_required"),
+        explanation_required=input_data.get("explanation_required"),
     )
     user_prompt = get_dynamic_prompt(input_data)
     rendered = prompt_template.invoke({

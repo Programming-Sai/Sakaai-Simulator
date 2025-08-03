@@ -7,7 +7,7 @@ async def generate_quizzes_from_text_or_file(prompt: str, file=None, extra_data=
     
     if file:
         validate_file(file)
-        file_text = get_text_from_file(file)
+        file_text = await get_text_from_file(file) 
 
 
     if not prompt.strip() and not file_text:
