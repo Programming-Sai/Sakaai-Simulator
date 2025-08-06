@@ -56,7 +56,7 @@ def score_readability(response: str) -> float:
 def score_similarity(question: dict, response: str) -> float:
     """
     Compare 'explanation' vs. response via token_set_ratio.
-    Scale 0–100 into 0–10.
+    Scale 0-100 into 0-10.
     """
     expl = question.get("explanation", "")
     if not expl:

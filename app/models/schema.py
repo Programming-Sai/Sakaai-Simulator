@@ -93,6 +93,7 @@ class QuizGenerationResponse(BaseModel):
 
 
 class SubjectiveEvaluationRequest(BaseModel):
+    requestId: str
     question: Union[EssayQuiz, FITBKeywordQuiz]
     user_answer: str
 

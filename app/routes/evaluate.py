@@ -10,7 +10,8 @@ router = APIRouter(prefix="/evaluate")
 async def evaluate_subjective_answer(payload: SubjectiveEvaluationRequest):
     try:
         result = evaluate_subjective(
-            question=payload.question.dict(),
+            requestId=payload.requestId,
+            question=payload.question.model_dump(),
             user_answer=payload.user_answer
         )
         return result
