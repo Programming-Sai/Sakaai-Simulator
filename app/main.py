@@ -75,7 +75,7 @@ app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(health.router, tags=["Health"])
 app.include_router(generate.router, tags=["Generate"])
-# app.include_router(evaluate.router, tags=["Evaluate"])
+app.include_router(evaluate.router, tags=["Evaluate"])
 
 
 

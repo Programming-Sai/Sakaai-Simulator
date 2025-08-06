@@ -93,6 +93,21 @@ class QuizGenerationResponse(BaseModel):
 
 
 class SubjectiveEvaluationRequest(BaseModel):
-    question: str
-    keywords: List[str]
+    question: Union[EssayQuiz, FITBKeywordQuiz]
     user_answer: str
+
+
+class SubjectiveEvaluationResponse(BaseModel):
+    keyword: float
+    similarity: float
+    readability: float
+    structure: float
+    final_score: float
+
+    # Metadata
+    time_taken: Optional[float] = None  # in seconds
+    word_count: Optional[int] = None
+    character_count: Optional[int] = None
+
+
+

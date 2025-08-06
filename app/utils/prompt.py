@@ -188,6 +188,47 @@ REMINDERS:
 - If input material is too short to meet requirements, extrapolate logically but remain faithful to topic/context.
 - Any keywords list must be thorough enough to cover most valid correct responses.
 
+---
+**SUBJECTIVE QUESTION HANDLING & KEYWORD GUIDELINES**
+
+For any question of type `essay` or `fitb` that requires subjective evaluation:
+
+1. **Keyword Lists as Scoring Rubric**  
+   - Provide a `keywords` array containing **all** valid answer terms or concepts, including:  
+     - Exact phrases (single words or multi-word phrases).  
+     - Synonyms and alternative phrasings.  
+     - Any technical terms or key ideas necessary to demonstrate a correct response.  
+   - These `keywords` will be used later for fuzzy-match scoring and coverage checks.
+
+2. **Fit-in-the-Blank (FITB) Dual Mode**  
+   - **Objective FITB** (single correct fill):  
+     - Populate the `answer` field exactly (no `keywords` array).  
+     - Do **not** include a `keywords` key.  
+   - **Subjective FITB** (multiple acceptable fills):  
+     - Omit the `answer` field or set it to `null`.  
+     - Populate `keywords` with every valid fill (no `answer`).
+
+3. **How to Generate Keywords**  
+   - For each subjective item (`essay` or `fitb`):  
+     1. Extract every concept and term from your `explanation`.  
+     2. Expand with synonyms or rephrasings.  
+     3. Include multi-word phrases where appropriate.  
+     4. Exclude any distractors or incorrect terms.  
+   - Aim for comprehensive coverage—typically 5–10 keywords for essays; 3–5 for short subjective blanks.
+
+4. **Consistency & Coverage**  
+   - Keywords must directly reflect content in the `explanation`.  
+   - Ensure no core point in the explanation is missing from `keywords`.  
+   - Do **not** supply keywords for objective FITB, and do **not** supply an `answer` for subjective FITB.
+
+**ENFORCE STRICTLY:**  
+- `essay` and **subjective** `fitb` → require a non-empty `keywords` array, no `answer`.  
+- **Objective** `fitb` → require a single `answer` string, no `keywords`.  
+- No free-form text outside the schema.  
+- Output only the JSON object.  
+---
+
+
 FINAL INSTRUCTION:
 Output ONLY the JSON object — do not include markdown, prose, or any other wrapper.
 """.strip()
