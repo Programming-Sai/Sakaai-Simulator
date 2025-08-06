@@ -3,10 +3,10 @@ from fastapi import APIRouter, HTTPException
 from app.models.schema import SubjectiveEvaluationRequest, SubjectiveEvaluationResponse
 from app.services.evaluate import evaluate_subjective
  
-router = APIRouter(prefix="/evaluate")
+router = APIRouter()
 
 
-@router.post("/subjective", response_model=SubjectiveEvaluationResponse)
+@router.post("/evaluate", response_model=SubjectiveEvaluationResponse)
 async def evaluate_subjective_answer(payload: SubjectiveEvaluationRequest):
     try:
         result = evaluate_subjective(

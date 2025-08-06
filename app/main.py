@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.routes import health, generate, evaluate  # your route modules
+from app.routes import feedback, health, generate, evaluate  # your route modules
 import os
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
@@ -76,6 +76,7 @@ app.add_middleware(SlowAPIMiddleware)
 app.include_router(health.router, tags=["Health"])
 app.include_router(generate.router, tags=["Generate"])
 app.include_router(evaluate.router, tags=["Evaluate"])
+app.include_router(feedback.router, tags=["Feedback"])
 
 
 

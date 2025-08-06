@@ -1,5 +1,5 @@
 from typing import Any, Dict, List, Literal, Union, Optional
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
 from enum import Enum
 
 class SupportedFileType(str, Enum):
@@ -112,3 +112,6 @@ class SubjectiveEvaluationResponse(BaseModel):
 
 
 
+class FeedbackRequest(BaseModel):
+    requestId: Optional[str] = Field(None, description="User ID (if logged in)")
+    answers: List[str] = Field(..., min_items=5, max_items=5, description="Answers to feedback questions")
