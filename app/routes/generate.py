@@ -13,8 +13,9 @@ from app.services.generate import generate_quizzes_from_text_or_file
 
 router = APIRouter()
 
-
+MAX_NUM_QUESTIONS = int(os.getenv("MAX_NUM_QUESTIONS", 30))
 MAX_REQUEST_PER_DAILY = os.getenv("MAX_REQUEST_PER_DAILY") or "5/day"
+
 @router.post("/generate", response_model=QuizGenerationResponse)
 @limiter.limit(MAX_REQUEST_PER_DAILY)
 async def generate_quiz(
@@ -30,6 +31,9 @@ async def generate_quiz(
     file_intent: Optional[str] = Form(None),
     file: Optional[UploadFile] = File(None, description="Optional uploaded file"),
 ):
+    
+
+
     request.state.request_id = request_id
     ctx = RequestContext(request_id=request_id)
     ctx.set_input(
@@ -43,7 +47,16 @@ async def generate_quiz(
         file_intent=file_intent,
     )
 
+    if num_questions is not None and num_questions > MAX_NUM_QUESTIONS:
+        log_event(event_type="request_failed", request_id=request_id, message=f"Maximum allowed number of questions is {MAX_NUM_QUESTIONS}", **ctx.inputs)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Maximum allowed number of questions is {MAX_NUM_QUESTIONS}"
+        )
+
     log_event(event_type="request_start", request_id=request_id, **ctx.inputs)
+
+
 
     try:
         response = await generate_quizzes_from_text_or_file(
