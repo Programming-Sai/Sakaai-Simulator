@@ -16,6 +16,10 @@ import os
 from dotenv import load_dotenv
 from langchain_core.exceptions import OutputParserException
 
+from app.utils.logger     import log_event, append_to_gsheets
+from app.utils.request_context import RequestContext
+
+
 load_dotenv()
 
 """
@@ -209,9 +213,9 @@ def _get_llm() -> Tuple[ChatGroq, str]:
         return _current_llm, _current_model
 
 # Main generate function
-def generate_quiz(input_data: Dict[str, Any]) -> QuizGenerationResponse:
+def generate_quiz(input_data: Dict[str, Any], ctx: RequestContext) -> QuizGenerationResponse:
     # build prompts
-    print(input_data)
+    ctx.set_input(**input_data)
     system_prompt = get_system_prompt(
         num_questions=input_data.get("num_questions"),
         num_choices=input_data.get("options_per_question"),
@@ -227,6 +231,7 @@ def generate_quiz(input_data: Dict[str, Any]) -> QuizGenerationResponse:
     })
 
     last_error = {}
+    rotation_count = 0
     ai_msg = None
     used_model = None
 
@@ -239,15 +244,23 @@ def generate_quiz(input_data: Dict[str, Any]) -> QuizGenerationResponse:
                 start = time.perf_counter()
                 ai_msg = llm.invoke(rendered.messages)
                 elapsed = time.perf_counter() - start
-                groq_meta = getattr(ai_msg, "response_metadata", {}) or ai_msg.token_usage or {}
+                # groq_meta = getattr(ai_msg, "response_metadata", {}) or ai_msg.token_usage or {}
                 print(f"[Attempt {regen_attempt}] Model {used_model} responded in {elapsed:.2f}s")
-                break  # got a response, move to parsing/validation
+                meta = getattr(ai_msg, "response_metadata", {}) or ai_msg.token_usage or {}
+                ctx.set_log(
+                    model_used=used_model,
+                    inference_time_s=elapsed,
+                    rotation_count=rotation_count,
+                    regen_attempts=regen_attempt
+                )
+                break  
             except GroqError as e:
                 raw = e.args[0]
                 err_obj = clean_groq_error(str(raw))
                 code    = err_obj.get("code")
                 msg     = err_obj.get("message", "").lower()
-
+                rotation_count += 1
+                ctx.set_log(rotation_reason=err_obj.get("message","")) 
                 # Rotate if rate limit exceeded
                 if code == "rate_limit_exceeded" or "Rate limit reached" in raw:
                     last_error = err_obj or {}
@@ -305,15 +318,35 @@ def generate_quiz(input_data: Dict[str, Any]) -> QuizGenerationResponse:
                 inference_time=elapsed,
                 question_count=len(payload.get("quizzes", [])),
                 attempt_number=regen_attempt+1,
-                token_usage=groq_meta.get("token_usage"),
+                token_usage=meta.get("token_usage"),
                 quizzes=payload["quizzes"]
             )
+            ctx.set_log(
+                validation_passed=True,
+                questions_generated=resp.question_count,
+                status="success",
+                completion_tokens = resp.token_usage.get("completion_tokens"),
+                prompt_tokens = resp.token_usage.get("prompt_tokens"),
+                total_tokens = resp.token_usage.get("total_tokens"),
+                completion_time = resp.token_usage.get("completion_time"),
+                prompt_time = resp.token_usage.get("prompt_time"),
+                queue_time = resp.token_usage.get("queue_time"),
+                total_time = resp.token_usage.get("total_time")
+            )
+            entry = {**ctx.inputs, **ctx.logs}
+            log_event("generation_success", request_id=ctx.request_id, **entry)
+            append_to_gsheets("generation", {"request_id":ctx.request_id, **entry})
             return resp
         except ValidationError as ve:
             print(f"[Attempt {regen_attempt}] Validation failed: {ve}")
+            ctx.set_log(validation_passed=False)
             continue  # regenerate on next outer loop
 
     # If we get here, all retries failed
+    ctx.set_log(status="failure", error_message=last_error.get("message","unknown"))
+    entry = {**ctx.inputs, **ctx.logs}
+    log_event("generation_failure", request_id=ctx.request_id, **entry)
+    append_to_gsheets("generation", {"request_id":ctx.request_id, **entry})
     raise HTTPException(
         status_code=500,
         detail={
