@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+    
+    <a href="https://sakaai-simulator.vercel.app" target="_blank" rel="noopener noreferrer">
+        <picture>
+            <!-- Desktop (>1024px) -->
+            <source
+                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_laptop.png"
+                media="(min-width: 1024px)"
+            />
 
-## Getting Started
+            <!-- Tablet (768px–1023px) -->
+            <source
+                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_tablet.png"
+                media="(min-width: 768px) and (max-width: 1023px)"
+            />
 
-First, run the development server:
+            <!-- Mobile (<768px) -->
+                <source
+                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_mobile.png"
+                media="(max-width: 767px)"
+            />
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+            <!-- Fallback -->
+            <img
+                src="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_laptop.png"
+                alt="Sakaai Simulator Preview"
+                style="width:100%; height:auto;"
+            />
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+        </picture>
+    </a>
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+</div>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Sakaai Simulator
 
-## Learn More
+An AI-powered quiz generator & evaluator inspired by Sakai’s quiz workflow.
 
-To learn more about Next.js, take a look at the following resources:
+**Sakaai Simulator** lets you:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Generate** custom quizzes from any topic or text prompt
+- **Take** the quiz with a clean, distraction-free interface
+- **View** instant feedback (score, correct answers, explanations)
+- **Persist** your quiz history in the sidebar
+- **Toggle** between light and dark themes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🚀 Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Clone** this repo
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   git clone https://github.com/Programming-Sai/Sakaai-Simulator.git
+   cd Sakaai-Simulator
+   git checkout sakaai
+   ```
+
+2. **Install** dependencies
+
+   ```bash
+   npm install
+   ```
+
+3. **Run** the dev server
+
+   ```bash
+   npm run dev
+   ```
+
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🔧 What’s Done So Far
+
+- **Backend**:
+
+  - FastAPI health check, quiz-generation, evaluation, and feedback endpoints
+  - Deployed on Render’s free tier (auto-wake polling)
+
+- **Frontend**:
+
+  - **Scaffolded** a Next.js App Router project (JS + CSS)
+
+- **CI/CD & Previews**:
+
+  - Vercel auto-deploys on every push to the `sakaai` branch
+  - SnapMock workflow captures device-mockup screenshots and pushes to the `snapshots` branch
+
+---
+
+## 📬 Feedback & Contributions
+
+Feedback is power—feel free to open issues or submit PRs. Happy quizzing! 🎉
