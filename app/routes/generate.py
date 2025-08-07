@@ -29,7 +29,7 @@ async def generate_quiz(
     answer_required: bool = Form(True),
     explanation_required: bool = Form(True),
     file_intent: Optional[str] = Form(None),
-    file: Optional[UploadFile] = File(None, description="Optional uploaded file"),
+    # file: Optional[UploadFile] = File(None, description="Optional uploaded file"),
 ):
     
 
@@ -62,7 +62,7 @@ async def generate_quiz(
         response = await generate_quizzes_from_text_or_file(
             request_id=request_id,
             prompt=user_additional_instructions,
-            file=file,
+            # file=file,
             extra_data=ctx.inputs,
             ctx=ctx,
         )

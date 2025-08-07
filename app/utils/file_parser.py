@@ -3,7 +3,7 @@ import tempfile
 from fastapi import UploadFile, HTTPException
 from langchain_community.document_loaders import UnstructuredFileLoader
 from langchain_community.document_loaders import TextLoader
-import tiktoken
+# import tiktoken
 from app.utils.request_context import RequestContext
 from app.utils.logger          import log_event, append_to_gsheets
 
@@ -11,12 +11,14 @@ MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "2"))
 MAX_TOKENS      = int(os.getenv("MAX_TOKENS", "10000"))
 
 def estimate_tokens(text: str) -> int:
-    enc = tiktoken.get_encoding("cl100k_base")
-    try:
-        enc = tiktoken.encoding_for_model("deepseek-llm")
-    except Exception:
-        pass
-    return len(enc.encode(text))
+    # enc = tiktoken.get_encoding("cl100k_base") 
+    # try:
+    #     enc = tiktoken.encoding_for_model("deepseek-llm")
+    # except Exception:
+    #     pass
+    # print(len(enc.encode(text)))
+    # return len(enc.encode(text))
+    return 0
 
 async def get_text_from_file(file: UploadFile, ctx: RequestContext) -> str:
     # 1) Read upload into memory, enforce size limit

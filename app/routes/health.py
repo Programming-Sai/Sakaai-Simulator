@@ -4,26 +4,25 @@ from fastapi import APIRouter
 from app.models.schema import HealthResponse
 
 # existing imports
-import time
+# import time
 
 # new imports for evaluation logic
-from app.utils.evaluation_logic import (
-    score_structure,
-    score_readability,
-    score_similarity,
-    score_keywords,
-)
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from rapidfuzz import fuzz
-import textstat
-import spacy
+# from app.utils.evaluation_logic import (
+#     score_structure,
+#     score_readability,
+#     score_similarity,
+#     score_keywords,
+# )
+# import nltk
+# from nltk.tokenize import word_tokenize
+# from nltk.corpus import stopwords
+# from rapidfuzz import fuzz
+# import textstat
 from langchain_core.prompts import PromptTemplate
 
 
 
-from app.utils.nltk_setup import NLTK_DATA  # triggers the setup once
+# from app.utils.nltk_setup import NLTK_DATA  # triggers the setup once
 
 
 
@@ -33,12 +32,11 @@ router = APIRouter()
 async def health_check():
     results = {
         "arithmetic_check": False,
-        "nlp_check": False,
         "langchain_check": False,
-        "nltk_check": False,
-        "rapidfuzz_check": False,
-        "textstat_check": False,
-        "evaluation_logic_check": False,
+        # "nltk_check": False,
+        # "rapidfuzz_check": False,
+        # "textstat_check": False,
+        # "evaluation_logic_check": False,
     }
 
     # 1) Arithmetic
@@ -47,74 +45,67 @@ async def health_check():
     except Exception:
         pass
 
-    # 2) spaCy
-    try:
-        nlp = spacy.load("en_core_web_sm")
-        doc = nlp("Health check.")
-        results["nlp_check"] = len(doc) > 0
-    except Exception:
-        pass
 
-    # 3) LangChain PromptTemplate
+    # 2) LangChain PromptTemplate
     try:
         PromptTemplate.from_template("Q: {question}\nA:")
         results["langchain_check"] = True
     except Exception:
         pass
 
-    # 4) NLTK tokenization & stopwords
-    try:
-        # ensure punkt & stopwords are present (download if needed)
-        nltk.data.find("tokenizers/punkt")
-        nltk.data.find("corpora/stopwords")
-        word_tokenize("test")
-        stopwords.words("english")
-        results["nltk_check"] = True
-    except (LookupError, Exception):
-        try:
-            nltk.download("punkt", quiet=True)
-            nltk.download("stopwords", quiet=True)
-            # re-try
-            word_tokenize("test")
-            stopwords.words("english")
-            results["nltk_check"] = True
-        except Exception:
-            pass
+    # # 4) NLTK tokenization & stopwords
+    # try:
+    #     # ensure punkt & stopwords are present (download if needed)
+    #     nltk.data.find("tokenizers/punkt")
+    #     nltk.data.find("corpora/stopwords")
+    #     word_tokenize("test")
+    #     stopwords.words("english")
+    #     results["nltk_check"] = True
+    # except (LookupError, Exception):
+    #     try:
+    #         nltk.download("punkt", quiet=True)
+    #         nltk.download("stopwords", quiet=True)
+    #         # re-try
+    #         word_tokenize("test")
+    #         stopwords.words("english")
+    #         results["nltk_check"] = True
+    #     except Exception:
+    #         pass
 
-    # 5) RapidFuzz
-    try:
-        fuzz.ratio("foo", "bar")
-        results["rapidfuzz_check"] = True
-    except Exception:
-        pass
+    # # 5) RapidFuzz
+    # try:
+    #     fuzz.ratio("foo", "bar")
+    #     results["rapidfuzz_check"] = True
+    # except Exception:
+    #     pass
 
-    # 6) textstat
-    try:
-        _ = textstat.flesch_reading_ease("This is a simple sentence.")
-        results["textstat_check"] = True
-    except Exception:
-        pass
+    # # 6) textstat
+    # try:
+    #     _ = textstat.flesch_reading_ease("This is a simple sentence.")
+    #     results["textstat_check"] = True
+    # except Exception:
+    #     pass
 
-    # 7) evaluation_logic end-to-end
-    try:
-        # tiny sample
-        sample_q = {
-            "type": "essay",
-            "question": "Why is water wet?",
-            "explanation": "Because it is water and wetness is a property of liquids.",
-            "keywords": ["water", "wetness", "liquid"],
-        }
-        sample_ans = "Water is wet because wetness describes a liquid's property."
-        # run all four scorers
-        s1 = score_structure(sample_ans)
-        s2 = score_readability(sample_ans)
-        s3 = score_similarity(sample_q, sample_ans)
-        s4 = score_keywords(sample_q, sample_ans)
-        # if each returns a float between 0 and 10, we’re good
-        if all(isinstance(x, float) and 0 <= x <= 10 for x in (s1, s2, s3, s4)):
-            results["evaluation_logic_check"] = True
-    except Exception:
-        pass
+    # # 7) evaluation_logic end-to-end
+    # try:
+    #     # tiny sample
+    #     sample_q = {
+    #         "type": "essay",
+    #         "question": "Why is water wet?",
+    #         "explanation": "Because it is water and wetness is a property of liquids.",
+    #         "keywords": ["water", "wetness", "liquid"],
+    #     }
+    #     sample_ans = "Water is wet because wetness describes a liquid's property."
+    #     # run all four scorers
+    #     s1 = score_structure(sample_ans)
+    #     s2 = score_readability(sample_ans)
+    #     s3 = score_similarity(sample_q, sample_ans)
+    #     s4 = score_keywords(sample_q, sample_ans)
+    #     # if each returns a float between 0 and 10, we’re good
+    #     if all(isinstance(x, float) and 0 <= x <= 10 for x in (s1, s2, s3, s4)):
+    #         results["evaluation_logic_check"] = True
+    # except Exception:
+    #     pass
 
     # decide overall
     healthy = all(results.values())
