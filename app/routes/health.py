@@ -1,4 +1,5 @@
 # app/routes/health.py
+import os
 from fastapi import APIRouter
 from app.models.schema import HealthResponse
 
@@ -19,6 +20,12 @@ from rapidfuzz import fuzz
 import textstat
 import spacy
 from langchain_core.prompts import PromptTemplate
+
+
+
+from app.utils.nltk_setup import NLTK_DATA  # triggers the setup once
+
+
 
 router = APIRouter()
 

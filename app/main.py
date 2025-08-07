@@ -1,3 +1,4 @@
+import app.utils.nltk_setup
 from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware

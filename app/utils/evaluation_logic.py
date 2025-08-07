@@ -1,10 +1,12 @@
-import time
+import os
 import re
+import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from rapidfuzz import fuzz
 import textstat
 
+from app.utils.nltk_setup import NLTK_DATA  # triggers the setup once
 
 
 
