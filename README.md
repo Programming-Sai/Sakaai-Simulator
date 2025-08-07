@@ -1,36 +1,20 @@
-<div align="center">
-    
-    <a href="https://sakaai-simulator.vercel.app" target="_blank" rel="noopener noreferrer">
-        <picture>
-            <!-- Desktop (>1024px) -->
-            <source
-                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_laptop.png"
-                media="(min-width: 1024px)"
-            />
-
-            <!-- Tablet (768px–1023px) -->
-            <source
-                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_tablet.png"
-                media="(min-width: 768px) and (max-width: 1023px)"
-            />
-
-            <!-- Mobile (<768px) -->
-                <source
-                srcset="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_mobile.png"
-                media="(max-width: 767px)"
-            />
-
-            <!-- Fallback -->
-            <img
-                src="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapshots/output_laptop.png"
-                alt="Sakaai Simulator Preview"
-                style="width:100%; height:auto;"
-            />
-
-        </picture>
-    </a>
-
-</div>
+<p align="center">
+  <a href="https://sakaai-simulator.vercel.app" target="_blank" rel="noopener noreferrer">
+    <img
+      src="https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapmock-output/output_laptop.png"
+      srcset="
+        https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapmock-output/output_mobile.png  767w,
+        https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapmock-output/output_tablet.png 1023w,
+        https://raw.githubusercontent.com/Programming-Sai/Sakaai-Simulator/snapmock-output/output_laptop.png 1280w
+      "
+      sizes="(max-width: 767px) 100vw,
+             (max-width: 1023px) 80vw,
+             60vw"
+      alt="Sakaai Simulator Preview"
+      style="width:100%; height:auto;"
+    />
+  </a>
+</p>
 
 # Sakaai Simulator
 
