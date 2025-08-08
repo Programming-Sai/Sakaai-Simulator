@@ -1,27 +1,33 @@
-import { Geist, Geist_Mono } from "next/font/google";
+// app/layout.js
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import ThemeProvider from "../context/ThemeContext";
+import { AppProvider } from "../context/AppContext";
+import ToastProvider from "../context/ToastContext";
+import Header from "../components/Header/Header";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 export const metadata = {
   title: "Sakaai Simulator",
-  description:
-    "LMS-style AI quiz generator + evaluator inspired by Sakai. Upload materials, generate questions, assess responses. Simulates real quiz workflows",
+  description: "AI quiz generator — MVP",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+      <body>
+        <ThemeProvider>
+          <AppProvider>
+            <ToastProvider>
+              <Header />
+              <div className="app-layout">
+                <aside>
+                  <Sidebar />
+                </aside>
+                <main>{children}</main>
+              </div>
+            </ToastProvider>
+          </AppProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
