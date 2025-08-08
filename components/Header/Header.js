@@ -1,7 +1,7 @@
 // components/Header.js
 "use client";
 import { useEffect, useState } from "react";
-import styles from "./Header.module.css";
+import styles from "./header.module.css";
 
 export default function Header() {
   const [theme, setTheme] = useState("light");
