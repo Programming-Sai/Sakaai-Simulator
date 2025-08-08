@@ -1,0 +1,40 @@
+.quizContainer {
+  margin: 0 auto;
+  width: 70%;
+}
+
+.quizProgress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 17rem;
+  padding: 10px;
+  margin: 10px;
+  margin-top: 40px;
+  border-radius: 10px;
+  background-color: var(--panel);
+}
+
+.quizProgress p {
+  padding: 0;
+  margin: 0;
+}
+
+.quizButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: fit-content;
+  gap: 50px;
+  flex-wrap: wrap;
+}
+
+.quizButtons button {
+  background-color: var(--accent);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  margin-bottom: 40px;
+}
