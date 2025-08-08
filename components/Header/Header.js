@@ -26,7 +26,7 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.left}>
-        <div className={styles.logo}>Sakaai</div>
+        <div className={styles.logo}>Sakaai Simulator</div>
       </div>
       <div className={styles.right}>
         <button

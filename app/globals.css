@@ -1,7 +1,7 @@
 /* app/globals.css - global CSS variables & reset */
 :root {
   --bg: #ffffff;
-  --panel: #f8f9fb;
+  --panel: #f3f4f4;
   --text: #0f1720;
   --muted: #6b7280;
   --accent: #2563eb; /* blue */
@@ -13,17 +13,20 @@
   --radius: 12px;
   --sidebar-width: 300px;
   --transition: 200ms ease;
+
+  --sidebar-hover-color: #c7d6dd;
 }
 
 /* dark theme overrides */
 :root[data-theme="dark"] {
-  --bg: #0b1220;
-  --panel: #071126;
+  --bg: #1e2225;
+  --panel: #31343b;
   --text: #e6eef8;
   --muted: #9aa8bf;
   --accent: #60a5fa;
-  --accent-contrast: #0b1220;
+  --accent-contrast: #1e2225;
   --glass: rgba(255, 255, 255, 0.02);
+  --sidebar-hover-color: #56819a;
 }
 
 /* very small reset */
@@ -62,7 +65,7 @@ button {
   grid-template-columns: var(--sidebar-width) 1fr;
   gap: 20px;
   min-height: 100vh;
-  padding: 24px;
+  /* padding: 24px; */
 }
 @media (max-width: 880px) {
   .app-layout {
@@ -74,9 +77,9 @@ button {
 /* panels */
 .panel {
   background: var(--panel);
-  border-radius: var(--radius);
+  /* border-radius: var(--radius); */
   padding: 16px;
-  box-shadow: 0 4px 14px rgba(2, 6, 23, 0.06);
+  /* box-shadow: 0 4px 14px rgba(2, 6, 23, 0.06); */
 }
 
 /* small typographic helpers */
@@ -99,3 +102,9 @@ button {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
+
+/* .ellipsis {
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+} */
