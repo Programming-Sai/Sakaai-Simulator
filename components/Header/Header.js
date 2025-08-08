@@ -29,13 +29,15 @@ export default function Header() {
         <div className={styles.logo}>Sakaai Simulator</div>
       </div>
       <div className={styles.right}>
-        <button
-          className="theme-toggle"
+        <div
+          className={styles.themeToggle}
+          // className={"theme-toggle" + styles.themeToggle}
           onClick={toggle}
           aria-label="Toggle theme"
         >
-          {theme === "dark" ? "🌚 Dark" : "🌞 Light"}
-        </button>
+          <span className={theme !== "dark" ? styles.active : ""}>☀</span>
+          <span className={theme == "dark" ? styles.active : ""}>☾</span>
+        </div>
       </div>
     </header>
   );

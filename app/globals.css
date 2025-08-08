@@ -95,10 +95,10 @@ button {
 /* theme toggle style hook for snapmock selector */
 .theme-toggle {
   display: inline-flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 50px;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.03);
 }
