@@ -3,8 +3,8 @@
   --bg: #ffffff;
   --panel: #f3f4f4;
   --text: #0f1720;
-  --muted: #6b7280;
-  --accent: #2563eb; /* blue */
+  --muted: hwb(220 42% 50%);
+  --accent: #0f4b70; /* blue */
   --accent-contrast: #ffffff;
   --success: #16a34a;
   --danger: #dc2626;
@@ -23,7 +23,7 @@
   --panel: #31343b;
   --text: #e6eef8;
   --muted: #9aa8bf;
-  --accent: #60a5fa;
+  --accent: #0f4b70;
   --accent-contrast: #1e2225;
   --glass: rgba(255, 255, 255, 0.02);
   --sidebar-hover-color: #56819a;

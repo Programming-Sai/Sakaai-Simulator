@@ -1,5 +1,6 @@
 // components/Sidebar.js
 "use client";
+import { useState } from "react";
 import styles from "./sidebar.module.css";
 
 const quizzes = [
@@ -1326,11 +1327,24 @@ const quizzes = [
 ];
 
 export default function Sidebar() {
+  const maxQuizzes = 10;
+
+  const [usage, setUsage] = useState(maxQuizzes);
   return (
     <div className={styles.wrapper + " panel"}>
-      <div className={styles.logo}>
-        <div>Logo</div>
+      <div className={styles.usageContainer}>
+        <div className={styles.usageStats}>
+          <p>{usage}</p>
+          <p>{maxQuizzes}</p>
+        </div>
+        <div className={styles.usageProgressContainer}>
+          <div
+            className={styles.usageProgress}
+            style={{ "--usage": `${(usage / maxQuizzes) * 100}%` }}
+          />
+        </div>
       </div>
+      <button className={styles.newButton}>✚ New Quiz</button>
       <h3>Quizzes</h3>
       {!quizzes || quizzes.length === 0 ? (
         <p className="lead">No quizzes yet — hit "Generate" to get started.</p>
