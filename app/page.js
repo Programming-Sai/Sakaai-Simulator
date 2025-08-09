@@ -1,21 +1,48 @@
 // app/page.js
+import React from "react";
+import styles from "./page.module.css";
+import { QuizTypeSelector } from "@/components/QiuzTypeSelector/QuizTypeSelector";
+
 export default function Home() {
   return (
-    <div className="panel">
-      <h1 className="h1">Welcome to Sakaai Simulator</h1>
-      <p className="lead">
-        Generate quizzes, answer them, and get instant feedback. Use the left
-        sidebar for history.
-      </p>
+    <div className={styles.setupContainer}>
+      <form className={styles.params}>
+        <input
+          className={styles.topic}
+          type="text"
+          placeholder="eg. Data Structures & Algorithms"
+        />
+        <QuizTypeSelector />
+        <input
+          type="number"
+          max={30}
+          min={1}
+          className={styles.number}
+          placeholder="Number of Questions"
+        />
+        <input
+          type="number"
+          max={8}
+          min={4}
+          className={styles.number}
+          placeholder="Number of Possible Answers"
+        />
+        <div className={styles.checkBox}>
+          <label>
+            <input className={styles.check} checked={true} type="checkbox" />
+            Answers Required
+          </label>
+          <label>
+            <input className={styles.check} checked={true} type="checkbox" />
+            Explanation Required
+          </label>
+        </div>
+      </form>
 
-      <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-        <a href="/setup">
-          <button className="panel">Generate Quiz</button>
-        </a>
-        <a href="/quiz">
-          <button className="panel">Open Last Quiz</button>
-        </a>
-      </div>
+      <textarea
+        className={styles.generate}
+        placeholder="eg. Generate some questions on Linked List ..."
+      />
     </div>
   );
 }

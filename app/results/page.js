@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import styles from "./page.module.css";
 import ProgressCircle from "@/components/ProgressCircle/ProgressCircle";
@@ -6,8 +7,11 @@ import { SATAQuizView } from "@/components/SATA/SATAQuizView";
 import { TFQuizView } from "@/components/TF/TFQuizView";
 import { FITBQuizView } from "@/components/FITB/FITBQuizView";
 import { EssayQuizView } from "@/components/Essay/EssayQuizView";
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Results() {
+  const { theme } = useTheme();
+
   const questionMapping = {
     fitb: (key, question, userAnswer, showAnswer) => (
       <FITBQuizView
@@ -143,11 +147,15 @@ export default function Results() {
     <div className={styles.resultContatiner}>
       <h2>Quiz Results</h2>
       <div className={styles.center}>
-        <ProgressCircle progress={70} />
+        <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
+          progress={70}
+        />
       </div>
 
       <div className={styles.breakdowns}>
         <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
           progress={70}
           size={80}
           strokeWidth={5}
@@ -155,6 +163,7 @@ export default function Results() {
           text={"3/10"}
         />
         <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
           progress={70}
           size={80}
           strokeWidth={5}
@@ -162,6 +171,7 @@ export default function Results() {
           text={"7/10"}
         />
         <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
           progress={50}
           size={80}
           strokeWidth={5}
@@ -172,7 +182,6 @@ export default function Results() {
       <div className={styles.resultsButtons}>
         <button>Retake Quiz</button>
         <button>View </button>
-        <button>New Quiz</button>
         <button>Back Home</button>
       </div>
       <div className={styles.resultFilterContainer}>

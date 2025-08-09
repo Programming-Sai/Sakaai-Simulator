@@ -26,6 +26,7 @@
 
 .resultsButtons button:last-child {
   background-color: var(--panel);
+  color: var(--text);
 }
 
 .resultFilterContainer {
@@ -48,6 +49,7 @@
 .filterActive {
   background-color: var(--accent);
   cursor: pointer;
+  color: white;
 }
 
 .center {
