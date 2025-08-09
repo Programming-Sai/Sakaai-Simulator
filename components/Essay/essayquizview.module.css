@@ -20,7 +20,8 @@
 
 .essayBox {
   width: 100%;
-  height: 100px;
+  min-height: 150px;
+  height: fit-content;
   background-color: transparent;
   border-radius: 5px;
   font: inherit;
@@ -28,4 +29,5 @@
   color: var(--text);
   outline: none;
   margin-top: 50px;
+  resize: vertical;
 }

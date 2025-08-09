@@ -2,6 +2,8 @@ import React from "react";
 import styles from "./tfquizview.module.css";
 
 export const TFQuizView = () => {
+  const showAnswer = false;
+
   const question = {
     type: "tf",
     question: "Mount Everest is the highest mountain in the world.",
@@ -15,19 +17,31 @@ export const TFQuizView = () => {
       <div className={styles.choices}>
         <span>
           <label>
-            <input name={question?.type} type="radio" /> &nbsp;&nbsp;&nbsp; A.
-            &nbsp;True
+            <input
+              name={question?.type}
+              type="radio"
+              checked={showAnswer && question?.answer === true}
+            />
+            &nbsp;&nbsp;&nbsp; A. &nbsp;True
           </label>
         </span>
 
         <span>
           <label>
-            <input name={question?.type} type="radio" /> &nbsp;&nbsp;&nbsp; B.
-            &nbsp;False
+            <input
+              name={question?.type}
+              type="radio"
+              checked={showAnswer && question?.answer === false}
+            />
+            &nbsp;&nbsp;&nbsp; B. &nbsp;False
           </label>
         </span>
       </div>
-      <span className={styles.reset}> Reset Selection </span>
+      {showAnswer ? (
+        <span> {question?.explanation} </span>
+      ) : (
+        <span className={styles.reset}> Reset Selection </span>
+      )}
     </div>
   );
 };

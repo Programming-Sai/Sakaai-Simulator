@@ -5,7 +5,13 @@
   align-items: center;
   padding: 16px 24px;
   background-color: #333435;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   color: white !important;
+  height: 60px;
+  /* z-index: 1; */
 }
 .logo {
   font-weight: 700;

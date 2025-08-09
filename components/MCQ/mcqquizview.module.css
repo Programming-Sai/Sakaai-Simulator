@@ -13,6 +13,10 @@
   margin-bottom: 20px;
 }
 
+.choices label {
+  cursor: pointer;
+}
+
 .reset {
   text-decoration: underline;
   cursor: pointer;

@@ -1,6 +1,7 @@
 import styles from "./fitbquizview.module.css";
 
 export const FITBQuizView = () => {
+  const showAnswer = false;
   const question = {
     type: "fitb",
     question:
@@ -20,8 +21,14 @@ export const FITBQuizView = () => {
         type="text"
         className={styles.fitbInput}
         name={question?.type}
+        value={showAnswer ? question?.answer : ""}
+        readOnly={showAnswer}
       />
       &nbsp;<span>{questionParts[1]}</span>
+      <br />
+      <br />
+      <br />
+      {showAnswer && <span> {question?.explanation} </span>}
     </div>
   );
 };

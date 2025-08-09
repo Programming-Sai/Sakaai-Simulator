@@ -21,7 +21,7 @@ export default function Quiz() {
       <FITBQuizView />
       <TFQuizView />
       <SATAQuizView />
-      {/* PAdding for view and cickable area expansion. */}
+      {/* Padding for view and cickable area expansion. */}
       <div className={styles.quizButtons}>
         <button>Previous</button>
         <button>Next</button>

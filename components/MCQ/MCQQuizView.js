@@ -2,6 +2,8 @@ import React from "react";
 import styles from "./mcqquizview.module.css";
 
 export const MCQQuizView = () => {
+  const showAnswer = false;
+
   const question = {
     type: "mcq",
     question: "What is the primary goal of creating content on LinkedIn?",
@@ -22,14 +24,22 @@ export const MCQQuizView = () => {
         {question.choices.map((choice, i) => (
           <span key={i}>
             <label>
-              <input type="radio" name={question?.type} />{" "}
+              <input
+                checked={showAnswer && choice === question?.answer}
+                type="radio"
+                name={question?.type}
+              />{" "}
               {String.fromCharCode(65 + i)}. &nbsp;
               {choice}
             </label>
           </span>
         ))}
       </div>
-      <span className={styles.reset}> Reset Selection </span>
+      {showAnswer ? (
+        <span> {question?.explanation} </span>
+      ) : (
+        <span className={styles.reset}> Reset Selection </span>
+      )}
     </div>
   );
 };

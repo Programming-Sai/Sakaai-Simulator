@@ -1,6 +1,7 @@
 import styles from "./essayquizview.module.css";
 
 export const EssayQuizView = () => {
+  const showAnswer = false;
   const question = {
     type: "essay",
     question:
@@ -20,7 +21,12 @@ export const EssayQuizView = () => {
   return (
     <div className={styles.quizBox}>
       <span>{question?.question}</span>
-      <textarea className={styles.essayBox} placeholder="Your Answer" />
+      <textarea
+        className={styles.essayBox}
+        placeholder="Your Answer"
+        value={showAnswer ? question?.explanation : ""}
+        readOnly={showAnswer}
+      />
     </div>
   );
 };
