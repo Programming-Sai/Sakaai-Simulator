@@ -1,20 +1,10 @@
 import styles from "./fitbquizview.module.css";
 
-export const FITBQuizView = () => {
-  const showAnswer = false;
-  const question = {
-    type: "fitb",
-    question:
-      "Mount Everest is located in the _______________________ mountain range.",
-    explanation:
-      "Mount Everest is situated in the Himalayan mountain range in Asia.",
-    answer: "Himalayan",
-  };
-
+export const FITBQuizView = ({ key, question, showAnswer }) => {
   const questionParts = question?.question.split(/_{3,}/);
 
   return (
-    <div className={styles.quizBox}>
+    <div key={key} className={styles.quizBox}>
       <span>{questionParts[0]}</span>&nbsp;
       <input
         placeholder="| "

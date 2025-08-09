@@ -1,0 +1,14 @@
+/* components/ProgressCircle.module.css */
+.circle {
+  /* transform: rotate(-90deg); */
+}
+.bg {
+  stroke: #eee;
+}
+.progress {
+  transition: stroke-dashoffset 0.35s;
+}
+
+.text {
+  color: var(--text);
+}

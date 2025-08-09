@@ -1,22 +1,35 @@
 import React from "react";
 import styles from "./tfquizview.module.css";
 
-export const TFQuizView = () => {
-  const showAnswer = false;
+export const TFQuizView = ({ key, question, userAnswer, showAnswer }) => {
+  const isUserCorrect = userAnswer?.answer === question?.answer;
 
-  const question = {
-    type: "tf",
-    question: "Mount Everest is the highest mountain in the world.",
-    explanation:
-      "Mount Everest, located in the Himalayas on the border between Nepal and Tibet, China, is widely recognized as the highest mountain in the world, with a peak at 8,848.86 meters (29,031.7 feet) above sea level.",
-    answer: true,
+  const getOptionStyle = (optionValue) => {
+    if (!showAnswer) return {};
+    if (optionValue === question?.answer) {
+      // Correct answer → green
+      return {
+        backgroundColor: "rgba(0,255,0,0.2)",
+        padding: 5,
+        borderRadius: 5,
+      };
+    }
+    if (optionValue === userAnswer?.answer && !isUserCorrect) {
+      // User's wrong choice → red
+      return {
+        backgroundColor: "rgba(255,0,0,0.2)",
+        padding: 5,
+        borderRadius: 5,
+      };
+    }
+    return {};
   };
   return (
-    <div className={styles.quizBox}>
+    <div key={key} className={styles.quizBox}>
       <p>{question?.question}</p>
       <div className={styles.choices}>
         <span>
-          <label>
+          <label style={getOptionStyle(true)}>
             <input
               name={question?.type}
               type="radio"
@@ -27,7 +40,7 @@ export const TFQuizView = () => {
         </span>
 
         <span>
-          <label>
+          <label style={getOptionStyle(false)}>
             <input
               name={question?.type}
               type="radio"

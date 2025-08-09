@@ -1,29 +1,36 @@
 import React from "react";
 import styles from "./mcqquizview.module.css";
 
-export const MCQQuizView = () => {
-  const showAnswer = false;
+export const MCQQuizView = ({ key, question, userAnswer, showAnswer }) => {
+  const isUserCorrect = userAnswer?.answer === question?.answer;
 
-  const question = {
-    type: "mcq",
-    question: "What is the primary goal of creating content on LinkedIn?",
-    explanation:
-      "The primary goal is to engage the audience and build professional connections.",
-    choices: [
-      "To drive website traffic",
-      "To engage the audience and build professional connections",
-      "To increase personal followers",
-      "To share personal achievements",
-    ],
-    answer: "To engage the audience and build professional connections",
+  const getOptionStyle = (optionValue) => {
+    if (!showAnswer) return {};
+    if (optionValue === question?.answer) {
+      // Correct answer → green
+      return {
+        backgroundColor: "rgba(0,255,0,0.2)",
+        padding: 5,
+        borderRadius: 5,
+      };
+    }
+    if (optionValue === userAnswer?.answer && !isUserCorrect) {
+      // User's wrong choice → red
+      return {
+        backgroundColor: "rgba(255,0,0,0.2)",
+        padding: 5,
+        borderRadius: 5,
+      };
+    }
+    return {};
   };
   return (
-    <div className={styles.quizBox}>
+    <div key={key} className={styles.quizBox}>
       <p>{question.question}</p>
       <div className={styles.choices}>
         {question.choices.map((choice, i) => (
           <span key={i}>
-            <label>
+            <label style={getOptionStyle(choice)}>
               <input
                 checked={showAnswer && choice === question?.answer}
                 type="radio"
