@@ -1,0 +1,15 @@
+.modalBox {
+  position: "fixed";
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
+}
+
+.container {
+  width: min(720px, 95%);
+  background: white;
+  border-radius: 8;
+  padding: 24;
+}

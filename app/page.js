@@ -2,10 +2,12 @@
 import React from "react";
 import styles from "./page.module.css";
 import { QuizTypeSelector } from "@/components/QiuzTypeSelector/QuizTypeSelector";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className={styles.setupContainer}>
+      {/* <Link href="/feedback">Hello</Link> */}
       <form className={styles.params}>
         <input
           title="Topic, eg. Computer Architecture"

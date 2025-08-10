@@ -2,6 +2,7 @@
 "use client";
 import { useState } from "react";
 import styles from "./sidebar.module.css";
+import Link from "next/link";
 
 const quizzes = [
   [
@@ -1344,7 +1345,9 @@ export default function Sidebar() {
           />
         </div>
       </div>
-      <button className={styles.newButton}>✚ New Quiz</button>
+      <Link href="/" className={styles.newButton}>
+        ✚ New Quiz
+      </Link>
       <h3>Quizzes</h3>
       {!quizzes || quizzes.length === 0 ? (
         <p className="lead">No quizzes yet — hit "Generate" to get started.</p>

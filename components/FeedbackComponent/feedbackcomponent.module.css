@@ -1,0 +1,149 @@
+.feedbackContainer {
+  width: var(--width);
+  height: 85vh;
+  /* background-color: var(--panel); */
+  border-radius: 10px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.type {
+  position: fixed;
+  bottom: 5%;
+  margin: 0 auto;
+  background-color: var(--muted);
+  border: none;
+  outline: none;
+  width: 50vw;
+  height: 50px;
+  border-radius: 100px;
+  padding: 20px;
+  color: var(--bg);
+  font: inherit;
+}
+
+.type::placeholder {
+  color: var(--bg);
+}
+
+.sendButton {
+  width: 40px;
+  height: 40px;
+  background-color: var(--accent);
+  position: fixed;
+  bottom: 5.5%;
+  right: var(--right);
+  border: none;
+  outline: none;
+  color: white;
+  border-radius: 100%;
+}
+
+.chatBox {
+  width: 100%;
+  height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
+  padding-bottom: 100px;
+  --scroll-thumb: var(--muted); /* red thumb color */
+  --scroll-thumb-hover: var(--muted);
+  --scroll-track: transparent; /* track background (transparent) */
+  --scroll-radius: 8px; /* rounded thumb radius */
+  --scroll-width: 10px; /* width for vertical scrollbar */
+  scrollbar-width: thin; /* Firefox fallback (visual hint) */
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track); /* Firefox */
+}
+
+.req,
+.res {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.res {
+  justify-content: flex-end;
+}
+
+.req span,
+.res span {
+  padding: 10px;
+  border-radius: 10px;
+  position: relative;
+  max-width: 50%;
+  overflow-wrap: break-word;
+  margin-block: 20px;
+  color: white;
+}
+
+.res span {
+  border-bottom-right-radius: 0;
+  background-color: #333435;
+}
+
+.req span {
+  border-bottom-left-radius: 0;
+  background-color: var(--accent);
+}
+
+.req span::before,
+.res span::before {
+  position: absolute;
+  bottom: 0;
+  content: "";
+  width: 10px;
+  height: 10px;
+}
+
+.req span::before {
+  left: -10px;
+  background-color: var(--accent);
+  border: 2px solid var(--accent);
+  clip-path: polygon(100% 0%, 100% 100%, 0% 100%);
+}
+
+.res span::before {
+  right: -10px;
+  background-color: #333435;
+  border: 2px solid #333435;
+  clip-path: polygon(0% 0%, 100% 100%, 0% 100%);
+}
+
+.triUp {
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent;
+  border-right: 20px solid transparent;
+  border-bottom: 34px solid #104a71; /* triangle color */
+}
+
+/* WebKit-based browsers */
+.chatBox::-webkit-scrollbar {
+  width: var(--scroll-width); /* vertical scrollbar width */
+  height: var(--scroll-width); /* horizontal scrollbar height */
+  background: transparent; /* fallback track bg */
+}
+.chatBox::-webkit-scrollbar-track {
+  background: var(--scroll-track); /* transparent track */
+}
+.chatBox::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb); /* red thumb */
+  border-radius: var(--scroll-radius);
+  border: 2px solid transparent; /* gives a little breathing room */
+  background-clip: padding-box; /* keep rounded corners crisp */
+}
+.chatBox::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* Optional: hide arrow buttons (old IE/Edge) */
+.chatBox::-webkit-scrollbar-button {
+  display: none;
+}

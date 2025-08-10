@@ -11,7 +11,7 @@ export const metadata = {
   description: "AI quiz generator — MVP",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children, feedback }) {
   return (
     <html lang="en">
       <body>
@@ -24,6 +24,7 @@ export default function RootLayout({ children }) {
                   <Sidebar />
                 </aside>
                 <main>{children}</main>
+                {feedback}
               </div>
             </ToastProvider>
           </AppProvider>
