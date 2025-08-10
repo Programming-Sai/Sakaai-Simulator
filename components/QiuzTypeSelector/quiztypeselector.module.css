@@ -1,0 +1,84 @@
+.qtcontainer {
+  width: calc(100%);
+  font-size: 0.8rem;
+}
+
+.selected {
+  background-color: var(--panel);
+  padding: 10px;
+  min-height: 40px;
+  height: fit-content;
+  position: relative;
+  border-radius: 5px;
+  z-index: 1;
+}
+
+.selected,
+.selected span {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.selected span {
+  background-color: var(--accent);
+  justify-content: space-between;
+  padding: 0px 10px;
+  border-radius: 50px;
+  flex-wrap: nowrap;
+}
+.selected p {
+  margin: 0;
+  padding: 0;
+  opacity: 0.5;
+}
+
+.selected span div {
+  margin-block: 3px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--text);
+  background-color: var(--muted);
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+.selected span p {
+  margin: 0;
+  color: white;
+  text-wrap: nowrap;
+}
+
+.options {
+  position: absolute;
+  border-radius: 5px;
+  left: 0;
+  margin-top: 5px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  background-color: var(--panel);
+  flex-direction: column;
+  width: 100%;
+  z-index: 2;
+  border: 1px solid var(--muted);
+}
+.options div {
+  border-bottom: 1px solid var(--muted);
+  width: 100%;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.options div:last-child {
+  border: none;
+}
