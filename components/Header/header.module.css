@@ -11,12 +11,19 @@
   right: 0;
   color: white !important;
   height: 60px;
-  /* z-index: 1; */
 }
 .logo {
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: 0.2px;
+  text-wrap: nowrap;
+}
+.left {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
+  gap: 10%;
 }
 .right {
   display: flex;
@@ -46,4 +53,24 @@
 
 .active {
   background-color: var(--accent);
+}
+
+.sidebarButton {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  color: white;
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .sidebarButton {
+    display: block;
+  }
+  .header {
+    padding: 16px 10px;
+  }
+  .logo {
+    font-size: 0.9rem;
+  }
 }

@@ -11,6 +11,7 @@
   position: fixed;
   width: var(--sidebar-width);
   top: 60px;
+  left: 0;
 }
 
 /* list container */
@@ -18,7 +19,7 @@
   display: flex;
   flex-direction: column;
   margin-top: 8px;
-  height: 45vh;
+  height: 50vh;
   gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -93,4 +94,26 @@
 
 .newButton:hover {
   transform: scale(1.025);
+}
+
+@media (max-width: 1024px) {
+  .wrapper {
+    left: -100%;
+    z-index: 100;
+  }
+
+  .wrapper.active {
+    left: 0;
+    border-right: 1px solid var(--text);
+  }
+  .newButton {
+    margin: 10px 0;
+  }
+  .quizHeader {
+    margin-top: 5px;
+    font-size: 1rem;
+  }
+  .list {
+    margin-top: 5px;
+  }
 }

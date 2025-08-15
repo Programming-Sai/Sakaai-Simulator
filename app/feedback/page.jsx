@@ -5,7 +5,7 @@ import FeedbackComponent from "@/components/FeedbackComponent/FeedbackComponent"
 export default function Feedback() {
   return (
     <div className={styles.feedbackContainer}>
-      <FeedbackComponent width={70} right={14.5} />
+      <FeedbackComponent width={70} right={14.5} smallScreenOffset={8} />
     </div>
   );
 }

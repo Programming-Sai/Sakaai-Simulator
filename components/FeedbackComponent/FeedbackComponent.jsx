@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./feedbackcomponent.module.css";
 
-export default function FeedbackComponent({ width, right }) {
+export default function FeedbackComponent({ width, right, smallScreenOffset }) {
   const messages = [
     { type: "req", text: "Hey there!" },
     { type: "res", text: "Hi! How's it going?" },
@@ -23,7 +23,11 @@ export default function FeedbackComponent({ width, right }) {
   return (
     <div
       className={styles.feedbackContainer}
-      style={{ "--width": (width % 101) + "%", "--right": (right % 101) + "%" }}
+      style={{
+        "--width": (width % 101) + "%",
+        "--right": (right % 101) + "%",
+        "--offset": (smallScreenOffset % 101) + "%",
+      }}
     >
       <div className={styles.chatBox}>
         {messages.map((msg, i) => (

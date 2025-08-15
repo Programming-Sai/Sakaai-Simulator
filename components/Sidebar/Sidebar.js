@@ -1327,12 +1327,14 @@ const quizzes = [
   ],
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ openSideBar }) {
   const maxQuizzes = 10;
 
   const [usage, setUsage] = useState(maxQuizzes);
   return (
-    <div className={styles.wrapper + " panel"}>
+    <div
+      className={`${styles.wrapper} panel ${openSideBar ? styles.active : ""}`}
+    >
       <div className={styles.usageContainer}>
         <div className={styles.usageStats}>
           <p>{usage}</p>
@@ -1348,7 +1350,7 @@ export default function Sidebar() {
       <Link href="/" className={styles.newButton}>
         ✚ New Quiz
       </Link>
-      <h3>Quizzes</h3>
+      <h3 className={styles.quizHeader}>Quizzes</h3>
       {!quizzes || quizzes.length === 0 ? (
         <p className="lead">No quizzes yet — hit "Generate" to get started.</p>
       ) : (

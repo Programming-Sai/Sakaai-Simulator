@@ -1,7 +1,6 @@
 .feedbackContainer {
   width: var(--width);
   height: 85vh;
-  /* background-color: var(--panel); */
   border-radius: 10px;
   margin: 0 auto;
   position: relative;
@@ -146,4 +145,17 @@
 /* Optional: hide arrow buttons (old IE/Edge) */
 .chatBox::-webkit-scrollbar-button {
   display: none;
+}
+
+@media (max-width: 1024px) {
+  .feedbackContainer {
+    width: 100%;
+  }
+  .type {
+    width: 90%;
+  }
+  .sendButton {
+    right: calc(var(--right) - var(--offset));
+    bottom: 5.65%;
+  }
 }

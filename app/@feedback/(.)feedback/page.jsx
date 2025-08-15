@@ -54,7 +54,7 @@ export default function FeedbackModal() {
         >
           ✕
         </button>
-        <FeedbackComponent width={100} right={25.5} />
+        <FeedbackComponent width={100} right={25.5} smallScreenOffset={18} />
       </div>
     </div>
   );

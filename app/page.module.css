@@ -82,3 +82,25 @@
   color: white;
   border-radius: 100%;
 }
+
+@media (max-width: 1024px) {
+  .generate {
+    width: 90%;
+  }
+  .generateButton {
+    right: 7%;
+    bottom: 7%;
+  }
+  .params {
+    width: 60%;
+  }
+}
+
+@media (max-width: 768px) {
+  .params {
+    width: 90%;
+  }
+  .checkBox label:last-child {
+    text-align: right;
+  }
+}

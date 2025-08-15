@@ -69,3 +69,12 @@
   width: 70%;
   margin: 0 auto;
 }
+
+@media (max-width: 1024px) {
+  .quizzes {
+    width: 100%;
+  }
+  .resultsButtons {
+    gap: 10px;
+  }
+}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "./header.module.css";
 import Link from "next/link";
 
-export default function Header() {
+export default function Header({ setOpenSideBar }) {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
@@ -24,9 +24,33 @@ export default function Header() {
     setTheme(next);
   }
 
+  function toggleSidebar() {
+    // functional updater avoids stale values
+    setOpenSideBar((prev) => {
+      const next = !prev;
+      return next;
+    });
+  }
+
   return (
     <header className={styles.header}>
       <div className={styles.left}>
+        <button className={styles.sidebarButton} onClick={toggleSidebar}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
         <Link href={"/"} className={styles.logo}>
           Sakaai Simulator
         </Link>
