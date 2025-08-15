@@ -13,10 +13,10 @@ export default function RootLayout({ children, feedback }) {
   const [openSideBar, setOpenSideBar] = useState(false);
   return (
     <html lang="en">
-      <Head>
+      <head>
         <title>Sakaai Simulator</title>
         <meta name="description" content="AI quiz generator — MVP" />
-      </Head>
+      </head>
 
       <body>
         <ThemeProvider>
