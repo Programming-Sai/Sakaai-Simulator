@@ -81,6 +81,8 @@
   outline: none;
   color: white;
   border-radius: 100%;
+  display: grid;
+  place-content: center;
 }
 
 @media (max-width: 1024px) {
