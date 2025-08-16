@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 const API_BASE = "https://sakaai-simulator.onrender.com"; // adjust if needed
 const REQUEST_ID_KEY = "sakaai:requestId";
-const MAX_QUIZZES = 15;
+const MAX_QUIZZES = 10;
 
 // Add near top (after constants)
 const QUIZZES_KEY = "sakaai:quizzes";
@@ -70,7 +70,7 @@ function dedupeHistoryArray(arr) {
 export function DataProvider({ children }) {
   // data store
   const [data, setData] = useState({
-    quizzes: [],
+    quizzes: {},
     answers: {},
     feedback: {},
     history: [],
@@ -141,7 +141,9 @@ export function DataProvider({ children }) {
         ...prev,
         history: dedupedHistory || prev.history,
         usage: storedUsage || prev.usage || { used: 0, limit: MAX_QUIZZES },
-        quizzes: prev.quizzes.length ? prev.quizzes : [],
+        quizzes: Object.keys(prev.quizzes || {}).length
+          ? prev.quizzes
+          : storedQuizzesMap,
         results: prev.results || {},
       }));
     } catch (e) {
@@ -332,7 +334,7 @@ export function DataProvider({ children }) {
   // reset store (if you want a full reset)
   function resetAll() {
     setData({
-      quizzes: [],
+      quizzes: {},
       answers: {},
       feedback: {},
       history: [],
