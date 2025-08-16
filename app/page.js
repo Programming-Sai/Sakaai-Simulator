@@ -1,75 +1,173 @@
 // app/page.js
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import styles from "./page.module.css";
+import { useData } from "@/context/DataContext";
 import { QuizTypeSelector } from "@/components/QiuzTypeSelector/QuizTypeSelector";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const { generateQuiz, isLoading, requestId, data, setSetupInstructions } =
+    useData();
+  const router = useRouter();
+
+  // form state
+  const [topic, setTopic] = useState("Linked Lists");
+  const [quizTypes, setQuizTypes] = useState(["tf", "sata"]); // assume array of strings
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [optionsPerQuestion, setOptionsPerQuestion] = useState(4);
+  const [answerRequired, setAnswerRequired] = useState(true);
+  const [explanationRequired, setExplanationRequired] = useState(true);
+  const [instructions, setInstructions] = useState(
+    "GEnerate Something on that topic for me."
+  );
+
+  const [error, setError] = useState(null);
+
+  function validate() {
+    if (!numQuestions || numQuestions < 1 || numQuestions > 30) {
+      return "Number of questions must be between 1 and 30.";
+    }
+    if (
+      !optionsPerQuestion ||
+      optionsPerQuestion < 4 ||
+      optionsPerQuestion > 8
+    ) {
+      return "Options per question must be between 4 and 8.";
+    }
+    return null;
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    setError(null);
+    const v = validate();
+    if (v) {
+      setError(v);
+      return;
+    }
+
+    // optional: persist the instructions in global data while waiting
+    setSetupInstructions(instructions);
+
+    const payload = {
+      user_additional_instructions: instructions,
+      topic: topic || null,
+      quiz_type: quizTypes.length ? quizTypes : null,
+      num_questions: Number(numQuestions),
+      options_per_question: Number(optionsPerQuestion),
+      answer_required: answerRequired,
+      explanation_required: explanationRequired,
+    };
+
+    const res = await generateQuiz(payload);
+    if (!res.ok) {
+      setError("Failed to generate quiz. Check console for details.");
+    } else {
+      // success — your context now has quizzes and history
+      router.push(`/quiz?genId=${encodeURIComponent(res.generationId)}`);
+      console.log("Generated successfully", res.json);
+    }
+  }
+
   return (
     <div className={styles.setupContainer}>
-      {/* <Link href="/feedback">Hello</Link> */}
-      <form className={styles.params}>
+      <form className={styles.params} onSubmit={onSubmit}>
         <input
           title="Topic, eg. Computer Architecture"
           className={styles.topic}
           type="text"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
           placeholder="Topic"
         />
-        <QuizTypeSelector />
+
+        <QuizTypeSelector value={quizTypes} onChange={setQuizTypes} />
+
         <input
           type="number"
           max={30}
           min={1}
           className={styles.number}
+          value={numQuestions}
+          onChange={(e) => setNumQuestions(e.target.value)}
           placeholder="Number of Questions"
           title="Number of Question, max: 30"
         />
-        <span className={styles.error}>
-          Values Must Be Between <b>1</b> and <b>30</b>
-        </span>
         <input
           type="number"
           max={8}
           min={4}
           className={styles.number}
+          value={optionsPerQuestion}
+          onChange={(e) => setOptionsPerQuestion(e.target.value)}
           placeholder="Number of Possible Answers"
           title="Number of Possible Answers, max: 8"
         />
-        <span className={styles.error}>
-          Values Must Be Between <b>4</b> and <b>8</b>
-        </span>
+
         <div className={styles.checkBox}>
           <label title="Should the Answers be included?">
-            <input className={styles.check} checked={true} type="checkbox" />
+            <input
+              className={styles.check}
+              checked={answerRequired}
+              type="checkbox"
+              onChange={(e) => setAnswerRequired(e.target.checked)}
+            />
             Answers Required
           </label>
           <label title="Should the Explanations be included?">
-            <input className={styles.check} checked={true} type="checkbox" />
+            <input
+              className={styles.check}
+              checked={explanationRequired}
+              type="checkbox"
+              onChange={(e) => setExplanationRequired(e.target.checked)}
+            />
             Explanation Required
           </label>
         </div>
+        <div style={{ fontSize: 12, color: "#999" }}>
+          Request Id: <code>{requestId}</code>
+        </div>
+
+        <textarea
+          className={styles.generate}
+          placeholder="eg. Generate some questions on Linked List ..."
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+        />
+        {error && <div className={styles.errorBox}>{error}</div>}
+
+        <button
+          className={styles.generateButton}
+          title="Generate Quiz?"
+          type="submit"
+          disabled={isLoading}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12 19V5" />
+            <polyline points="5 12 12 5 19 12" />
+          </svg>
+        </button>
       </form>
 
-      <textarea
-        className={styles.generate}
-        placeholder="eg. Generate some questions on Linked List ..."
-      />
-      <button className={styles.generateButton} title="Generate Quiz?">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+      {/* <div style={{ marginTop: 20 }}>
+        <h3>Preview (last result)</h3>
+        <pre
+          style={{ whiteSpace: "pre-wrap", maxHeight: 240, overflow: "auto" }}
         >
-          <path d="M12 19V5" />
-          <polyline points="5 12 12 5 19 12" />
-        </svg>
-      </button>
+          {JSON.stringify(data.lastRequestMeta || data.quizzes, null, 2)}
+        </pre>
+      </div> */}
     </div>
   );
 }

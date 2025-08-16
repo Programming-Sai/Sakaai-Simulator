@@ -25,3 +25,9 @@
   color: var(--text);
   border-bottom: 2px solid var(--text);
 }
+
+@media (max-width: 768px) {
+  .quizBox {
+    padding: 25px;
+  }
+}

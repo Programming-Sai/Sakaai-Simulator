@@ -7,7 +7,8 @@ import ToastProvider from "../context/ToastContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { useState } from "react";
-import Head from "next/head";
+import Loader from "@/components/Loader/Loader";
+import { DataProvider } from "@/context/DataContext";
 
 export default function RootLayout({ children, feedback }) {
   const [openSideBar, setOpenSideBar] = useState(false);
@@ -22,14 +23,17 @@ export default function RootLayout({ children, feedback }) {
         <ThemeProvider>
           <AppProvider>
             <ToastProvider>
-              <Header setOpenSideBar={setOpenSideBar} />
-              <div className="app-layout">
-                <aside>
-                  <Sidebar openSideBar={openSideBar} />
-                </aside>
-                <main>{children}</main>
-                {feedback}
-              </div>
+              <DataProvider>
+                <Header setOpenSideBar={setOpenSideBar} />
+                <Loader />
+                <div className="app-layout">
+                  <aside>
+                    <Sidebar openSideBar={openSideBar} />
+                  </aside>
+                  <main>{children}</main>
+                  {feedback}
+                </div>
+              </DataProvider>
             </ToastProvider>
           </AppProvider>
         </ThemeProvider>

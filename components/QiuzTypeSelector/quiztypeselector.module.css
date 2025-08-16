@@ -11,6 +11,7 @@
   position: relative;
   border-radius: 5px;
   z-index: 1;
+  cursor: pointer;
 }
 
 .selected,
@@ -20,7 +21,6 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  cursor: pointer;
 }
 
 .selected span {
@@ -62,7 +62,6 @@
   left: 0;
   margin-top: 5px;
   padding: 10px;
-  display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 15px;
@@ -71,6 +70,7 @@
   width: 100%;
   z-index: 2;
   border: 1px solid var(--muted);
+  display: none;
 }
 .options div {
   border-bottom: 1px solid var(--muted);
@@ -81,4 +81,11 @@
 
 .options div:last-child {
   border: none;
+}
+
+/* .active:not(:focus) {
+  display: none;
+} */
+.qtcontainer:focus-within .options {
+  display: flex; /* show when the container or its children are focused */
 }

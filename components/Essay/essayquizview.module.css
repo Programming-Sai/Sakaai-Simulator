@@ -31,3 +31,9 @@
   margin-top: 50px;
   resize: vertical;
 }
+
+@media (max-width: 768px) {
+  .quizBox {
+    padding: 25px;
+  }
+}
