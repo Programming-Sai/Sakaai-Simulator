@@ -43,7 +43,10 @@ export const TFQuizView = ({
               }
               type="radio"
               name={`question-${quizId}-${index}`}
-              onChange={(e) => onAnswer && onAnswer(quizId, index, true)}
+              onChange={(e) =>
+                !showAnswer && onAnswer && onAnswer(quizId, index, true)
+              }
+              readOnly={showAnswer}
             />
             &nbsp;&nbsp;&nbsp; A. &nbsp;True
           </label>

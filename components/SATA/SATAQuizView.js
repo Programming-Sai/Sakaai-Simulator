@@ -13,7 +13,7 @@ export const SATAQuizView = ({
     if (!showAnswer) return {};
 
     const isCorrect = question?.answer.includes(optionValue);
-    const isUserChoice = userAnswer.includes(optionValue);
+    const isUserChoice = userAnswer?.includes(optionValue);
 
     if (isCorrect) {
       // Always highlight correct answers green
@@ -51,8 +51,11 @@ export const SATAQuizView = ({
                 type="checkbox"
                 name={`question-${quizId}-${index}`}
                 onChange={(e) =>
-                  onAnswer && onAnswer(quizId, index, choice, { multi: true })
+                  !showAnswer &&
+                  onAnswer &&
+                  onAnswer(quizId, index, choice, { multi: true })
                 }
+                readOnly={showAnswer}
               />{" "}
               &nbsp;&nbsp;&nbsp;
               {String.fromCharCode(65 + i)}. &nbsp;{choice}

@@ -16,7 +16,9 @@ export const EssayQuizView = ({
         placeholder="Your Answer"
         value={showAnswer ? question?.answer : userAnswer ?? ""}
         readOnly={showAnswer}
-        onChange={(e) => onAnswer && onAnswer(quizId, index, e.target.value)}
+        onChange={(e) =>
+          !showAnswer && onAnswer && onAnswer(quizId, index, e.target.value)
+        }
       />
     </div>
   );

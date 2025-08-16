@@ -46,7 +46,10 @@ export const MCQQuizView = ({
                 }
                 type="radio"
                 name={`question-${quizId}-${index}`}
-                onChange={(e) => onAnswer && onAnswer(quizId, index, choice)}
+                onChange={(e) =>
+                  !showAnswer && onAnswer && onAnswer(quizId, index, choice)
+                }
+                readOnly={showAnswer}
               />{" "}
               {String.fromCharCode(65 + i)}. &nbsp;
               {choice}

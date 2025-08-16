@@ -21,7 +21,9 @@ export const FITBQuizView = ({
         name={question?.type}
         value={showAnswer ? question?.answer : userAnswer ?? ""}
         readOnly={showAnswer}
-        onChange={(e) => onAnswer && onAnswer(quizId, index, e.target.value)}
+        onChange={(e) =>
+          !showAnswer && onAnswer && onAnswer(quizId, index, e.target.value)
+        }
       />
       &nbsp;<span>{questionParts[1]}</span>
       <br />

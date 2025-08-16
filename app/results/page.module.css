@@ -1,7 +1,8 @@
 .resultContatiner {
   margin: 0 auto;
   margin-top: 80px;
-  width: fit-content;
+  /* width: fit-content; */
+  width: 90%;
 }
 
 .resultsButtons {

@@ -9,6 +9,7 @@ import { FITBQuizView } from "@/components/FITB/FITBQuizView";
 import { EssayQuizView } from "@/components/Essay/EssayQuizView";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/context/DataContext";
+import Link from "next/link";
 
 export default function Quiz() {
   const { data, setAnswer } = useData();
@@ -103,7 +104,11 @@ export default function Quiz() {
         >
           Next
         </button>
-        <button>Submit for Grading</button>
+        <button>
+          <Link href={`/results?genId=${encodeURIComponent(genId)}`}>
+            Submit for Grading
+          </Link>
+        </button>
       </div>
     </div>
   );
