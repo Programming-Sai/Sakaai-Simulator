@@ -9,7 +9,7 @@ export const TFQuizView = ({
   showAnswer,
   onAnswer,
 }) => {
-  const isUserCorrect = userAnswer?.answer === question?.answer;
+  const isUserCorrect = userAnswer === question?.answer;
 
   const getOptionStyle = (optionValue) => {
     if (!showAnswer) return {};
@@ -21,7 +21,7 @@ export const TFQuizView = ({
         borderRadius: 5,
       };
     }
-    if (optionValue === userAnswer?.answer && !isUserCorrect) {
+    if (optionValue === userAnswer && !isUserCorrect) {
       // User's wrong choice → red
       return {
         backgroundColor: "rgba(255,0,0,0.2)",
@@ -39,7 +39,7 @@ export const TFQuizView = ({
           <label style={getOptionStyle(true)}>
             <input
               checked={
-                showAnswer ? choice === question?.answer : userAnswer === true
+                showAnswer ? question?.answer === true : userAnswer === true
               }
               type="radio"
               name={`question-${quizId}-${index}`}
@@ -53,7 +53,7 @@ export const TFQuizView = ({
           <label style={getOptionStyle(false)}>
             <input
               checked={
-                showAnswer ? choice === question?.answer : userAnswer === false
+                showAnswer ? question?.answer === false : userAnswer === false
               }
               type="radio"
               name={`question-${quizId}-${index}`}

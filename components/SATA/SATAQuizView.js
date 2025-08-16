@@ -13,7 +13,7 @@ export const SATAQuizView = ({
     if (!showAnswer) return {};
 
     const isCorrect = question?.answer.includes(optionValue);
-    const isUserChoice = userAnswer?.answer.includes(optionValue);
+    const isUserChoice = userAnswer.includes(optionValue);
 
     if (isCorrect) {
       // Always highlight correct answers green

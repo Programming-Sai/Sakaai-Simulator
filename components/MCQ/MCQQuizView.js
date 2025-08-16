@@ -9,7 +9,7 @@ export const MCQQuizView = ({
   showAnswer,
   onAnswer,
 }) => {
-  const isUserCorrect = userAnswer?.answer === question?.answer;
+  const isUserCorrect = userAnswer === question?.answer;
 
   const getOptionStyle = (optionValue) => {
     if (!showAnswer) return {};
@@ -21,7 +21,7 @@ export const MCQQuizView = ({
         borderRadius: 5,
       };
     }
-    if (optionValue === userAnswer?.answer && !isUserCorrect) {
+    if (optionValue === userAnswer && !isUserCorrect) {
       // User's wrong choice → red
       return {
         backgroundColor: "rgba(255,0,0,0.2)",
