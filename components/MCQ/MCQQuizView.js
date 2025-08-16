@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "./mcqquizview.module.css";
 
-export const MCQQuizView = ({ key, question, userAnswer, showAnswer }) => {
+export const MCQQuizView = ({
+  index,
+  quizId,
+  question,
+  userAnswer,
+  showAnswer,
+  onAnswer,
+}) => {
   const isUserCorrect = userAnswer?.answer === question?.answer;
 
   const getOptionStyle = (optionValue) => {
@@ -25,16 +32,21 @@ export const MCQQuizView = ({ key, question, userAnswer, showAnswer }) => {
     return {};
   };
   return (
-    <div key={key} className={styles.quizBox}>
+    <div key={index} className={styles.quizBox}>
       <p>{question.question}</p>
       <div className={styles.choices}>
         {question.choices.map((choice, i) => (
           <span key={i}>
             <label style={getOptionStyle(choice)}>
               <input
-                checked={showAnswer && choice === question?.answer}
+                checked={
+                  showAnswer
+                    ? choice === question?.answer
+                    : userAnswer === choice
+                }
                 type="radio"
-                name={question?.type}
+                name={`question-${quizId}-${index}`}
+                onChange={(e) => onAnswer && onAnswer(quizId, index, choice)}
               />{" "}
               {String.fromCharCode(65 + i)}. &nbsp;
               {choice}
@@ -45,7 +57,13 @@ export const MCQQuizView = ({ key, question, userAnswer, showAnswer }) => {
       {showAnswer ? (
         <span> {question?.explanation} </span>
       ) : (
-        <span className={styles.reset}> Reset Selection </span>
+        <span
+          className={styles.reset}
+          onClick={() => onAnswer && onAnswer(quizId, index, null)}
+        >
+          {" "}
+          Reset Selection{" "}
+        </span>
       )}
     </div>
   );

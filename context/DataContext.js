@@ -10,6 +10,7 @@ const MAX_QUIZZES = 10;
 const QUIZZES_KEY = "sakaai:quizzes";
 const HISTORY_KEY = "sakaai:history";
 const USAGE_KEY = "sakaai:usage";
+const ANSWERS_KEY = "sakaai:answers";
 
 const DataContext = createContext();
 
@@ -74,10 +75,9 @@ export function DataProvider({ children }) {
     answers: {},
     feedback: {},
     history: [],
-    usage: { used: 0, limit: MAX_QUIZZES }, // example
+    usage: { used: 0, limit: MAX_QUIZZES },
     setupInstructions: null,
     results: {},
-    // meta
     lastRequestMeta: null,
   });
 
@@ -128,6 +128,7 @@ export function DataProvider({ children }) {
       const storedHistory = readJSON(HISTORY_KEY, []);
       const storedUsage = readJSON(USAGE_KEY, null);
       const storedQuizzesMap = readJSON(QUIZZES_KEY, {});
+      const storedAnswers = readJSON(ANSWERS_KEY, {});
 
       // dedupe storedHistory right away
       const dedupedHistory = dedupeHistoryArray(storedHistory);
@@ -139,6 +140,7 @@ export function DataProvider({ children }) {
 
       setData((prev) => ({
         ...prev,
+        answers: storedAnswers || prev.answers,
         history: dedupedHistory || prev.history,
         usage: storedUsage || prev.usage || { used: 0, limit: MAX_QUIZZES },
         quizzes: Object.keys(prev.quizzes || {}).length
@@ -353,6 +355,50 @@ export function DataProvider({ children }) {
     setRequestId(freshId);
   }
 
+  function setAnswer(genId, questionIndex, value, options = {}) {
+    setData((prev) => {
+      const prevAnswers = prev.answers[genId]?.[questionIndex];
+      let newValue = value;
+
+      if (options.multi) {
+        // Ensure array
+        const currentArr = Array.isArray(prevAnswers) ? prevAnswers : [];
+        if (currentArr.includes(value)) {
+          // remove if already selected
+          newValue = currentArr.filter((v) => v !== value);
+        } else {
+          // add if not selected
+          newValue = [...currentArr, value];
+        }
+      }
+
+      const updatedAnswers = {
+        ...prev.answers,
+        [genId]: {
+          ...(prev.answers[genId] || {}),
+          [questionIndex]: newValue,
+        },
+      };
+
+      writeJSON(ANSWERS_KEY, updatedAnswers);
+
+      return {
+        ...prev,
+        answers: updatedAnswers,
+      };
+    });
+  }
+
+  function resetAnswers(genId) {
+    setData((prev) => {
+      const updatedAnswers = { ...prev.answers };
+      delete updatedAnswers[genId];
+      writeJSON(ANSWERS_KEY, updatedAnswers);
+
+      return { ...prev, answers: updatedAnswers };
+    });
+  }
+
   const value = {
     data,
     setData,
@@ -367,6 +413,8 @@ export function DataProvider({ children }) {
     },
     setSetupInstructions,
     resetAll,
+    setAnswer,
+    resetAnswers,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -40,6 +40,11 @@
   margin-bottom: 40px;
 }
 
+.quizButtons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 @media (max-width: 1024px) {
   .quizContainer {
     width: 100%;

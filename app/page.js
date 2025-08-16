@@ -12,15 +12,13 @@ export default function Home() {
   const router = useRouter();
 
   // form state
-  const [topic, setTopic] = useState("Linked Lists");
-  const [quizTypes, setQuizTypes] = useState(["tf", "sata"]); // assume array of strings
-  const [numQuestions, setNumQuestions] = useState(5);
-  const [optionsPerQuestion, setOptionsPerQuestion] = useState(4);
+  const [topic, setTopic] = useState("");
+  const [quizTypes, setQuizTypes] = useState([]);
+  const [numQuestions, setNumQuestions] = useState();
+  const [optionsPerQuestion, setOptionsPerQuestion] = useState();
   const [answerRequired, setAnswerRequired] = useState(true);
   const [explanationRequired, setExplanationRequired] = useState(true);
-  const [instructions, setInstructions] = useState(
-    "GEnerate Something on that topic for me."
-  );
+  const [instructions, setInstructions] = useState("");
 
   const [error, setError] = useState(null);
 

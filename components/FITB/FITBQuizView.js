@@ -1,18 +1,27 @@
 import styles from "./fitbquizview.module.css";
 
-export const FITBQuizView = ({ key, question, showAnswer }) => {
-  const questionParts = question?.question.split(/_{3,}/);
+export const FITBQuizView = ({
+  index,
+  quizId,
+  question,
+  userAnswer,
+  showAnswer,
+  onAnswer,
+}) => {
+  const text = question?.question ?? "";
+  const questionParts = text.split(/_{3,}/);
 
   return (
-    <div key={key} className={styles.quizBox}>
+    <div key={index} className={styles.quizBox}>
       <span>{questionParts[0]}</span>&nbsp;
       <input
         placeholder="| "
         type="text"
         className={styles.fitbInput}
         name={question?.type}
-        value={showAnswer ? question?.answer : ""}
+        value={showAnswer ? question?.answer : userAnswer ?? ""}
         readOnly={showAnswer}
+        onChange={(e) => onAnswer && onAnswer(quizId, index, e.target.value)}
       />
       &nbsp;<span>{questionParts[1]}</span>
       <br />

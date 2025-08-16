@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "./tfquizview.module.css";
 
-export const TFQuizView = ({ key, question, userAnswer, showAnswer }) => {
+export const TFQuizView = ({
+  index,
+  quizId,
+  question,
+  userAnswer,
+  showAnswer,
+  onAnswer,
+}) => {
   const isUserCorrect = userAnswer?.answer === question?.answer;
 
   const getOptionStyle = (optionValue) => {
@@ -25,15 +32,18 @@ export const TFQuizView = ({ key, question, userAnswer, showAnswer }) => {
     return {};
   };
   return (
-    <div key={key} className={styles.quizBox}>
+    <div key={index} className={styles.quizBox}>
       <p>{question?.question}</p>
       <div className={styles.choices}>
         <span>
           <label style={getOptionStyle(true)}>
             <input
-              name={question?.type}
+              checked={
+                showAnswer ? choice === question?.answer : userAnswer === true
+              }
               type="radio"
-              checked={showAnswer && question?.answer === true}
+              name={`question-${quizId}-${index}`}
+              onChange={(e) => onAnswer && onAnswer(quizId, index, true)}
             />
             &nbsp;&nbsp;&nbsp; A. &nbsp;True
           </label>
@@ -42,9 +52,12 @@ export const TFQuizView = ({ key, question, userAnswer, showAnswer }) => {
         <span>
           <label style={getOptionStyle(false)}>
             <input
-              name={question?.type}
+              checked={
+                showAnswer ? choice === question?.answer : userAnswer === false
+              }
               type="radio"
-              checked={showAnswer && question?.answer === false}
+              name={`question-${quizId}-${index}`}
+              onChange={(e) => onAnswer && onAnswer(quizId, index, false)}
             />
             &nbsp;&nbsp;&nbsp; B. &nbsp;False
           </label>
@@ -53,7 +66,13 @@ export const TFQuizView = ({ key, question, userAnswer, showAnswer }) => {
       {showAnswer ? (
         <span> {question?.explanation} </span>
       ) : (
-        <span className={styles.reset}> Reset Selection </span>
+        <span
+          className={styles.reset}
+          onClick={() => onAnswer && onAnswer(quizId, index, null)}
+        >
+          {" "}
+          Reset Selection{" "}
+        </span>
       )}
     </div>
   );

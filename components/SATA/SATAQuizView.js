@@ -1,7 +1,14 @@
 import React from "react";
 import styles from "./sataquizview.module.css";
 
-export const SATAQuizView = ({ key, question, userAnswer, showAnswer }) => {
+export const SATAQuizView = ({
+  index,
+  quizId,
+  question,
+  userAnswer,
+  showAnswer,
+  onAnswer,
+}) => {
   const getOptionStyle = (optionValue) => {
     if (!showAnswer) return {};
 
@@ -29,16 +36,23 @@ export const SATAQuizView = ({ key, question, userAnswer, showAnswer }) => {
     return {};
   };
   return (
-    <div key={key} className={styles.quizBox}>
+    <div key={index} className={styles.quizBox}>
       <p>{question?.question}</p>
       <div className={styles.choices}>
         {question?.choices.map((choice, i) => (
           <span key={i}>
             <label style={getOptionStyle(choice)}>
               <input
+                checked={
+                  showAnswer
+                    ? question?.answer?.includes(choice)
+                    : userAnswer?.includes(choice)
+                }
                 type="checkbox"
-                name={question?.type}
-                checked={showAnswer && question?.answer.includes(choice)}
+                name={`question-${quizId}-${index}`}
+                onChange={(e) =>
+                  onAnswer && onAnswer(quizId, index, choice, { multi: true })
+                }
               />{" "}
               &nbsp;&nbsp;&nbsp;
               {String.fromCharCode(65 + i)}. &nbsp;{choice}
@@ -49,7 +63,13 @@ export const SATAQuizView = ({ key, question, userAnswer, showAnswer }) => {
       {showAnswer ? (
         <span> {question?.explanation} </span>
       ) : (
-        <span className={styles.reset}> Reset Selection </span>
+        <span
+          className={styles.reset}
+          onClick={() => onAnswer && onAnswer(quizId, index, [])}
+        >
+          {" "}
+          Reset Selection{" "}
+        </span>
       )}
     </div>
   );

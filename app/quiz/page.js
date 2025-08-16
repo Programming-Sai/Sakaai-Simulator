@@ -11,48 +11,58 @@ import { useSearchParams } from "next/navigation";
 import { useData } from "@/context/DataContext";
 
 export default function Quiz() {
-  const { data } = useData();
+  const { data, setAnswer } = useData();
   const searchParams = useSearchParams();
   const genId = searchParams.get("genId");
   const questionMapping = {
-    fitb: (key, question, userAnswer, showAnswer) => (
+    fitb: (key, question, userAnswer, showAnswer, quizId) => (
       <FITBQuizView
-        key={key}
+        index={key}
+        quizId={quizId}
         question={question}
         userAnswer={userAnswer}
         showAnswer={showAnswer}
+        onAnswer={setAnswer}
       />
     ),
-    mcq: (key, question, userAnswer, showAnswer) => (
+    mcq: (key, question, userAnswer, showAnswer, quizId) => (
       <MCQQuizView
-        key={key}
+        index={key}
+        quizId={quizId}
         question={question}
         userAnswer={userAnswer}
         showAnswer={showAnswer}
+        onAnswer={setAnswer}
       />
     ),
-    sata: (key, question, userAnswer, showAnswer) => (
+    sata: (key, question, userAnswer, showAnswer, quizId) => (
       <SATAQuizView
-        key={key}
+        index={key}
+        quizId={quizId}
         question={question}
         userAnswer={userAnswer}
         showAnswer={showAnswer}
+        onAnswer={setAnswer}
       />
     ),
-    tf: (key, question, userAnswer, showAnswer) => (
+    tf: (key, question, userAnswer, showAnswer, quizId) => (
       <TFQuizView
-        key={key}
+        index={key}
+        quizId={quizId}
         question={question}
         userAnswer={userAnswer}
         showAnswer={showAnswer}
+        onAnswer={setAnswer}
       />
     ),
-    essay: (key, question, userAnswer, showAnswer) => (
+    essay: (key, question, userAnswer, showAnswer, quizId) => (
       <EssayQuizView
-        key={key}
+        index={key}
+        quizId={quizId}
         question={question}
         userAnswer={userAnswer}
         showAnswer={showAnswer}
+        onAnswer={setAnswer}
       />
     ),
   };
@@ -73,9 +83,10 @@ export default function Quiz() {
       {questions[index] && questionMapping[questions[index].type] ? (
         questionMapping[questions[index].type](
           index,
-          questions[index],
-          null,
-          false
+          questions[index], // question (object)
+          data.answers?.[genId]?.[index] ?? null, // userAnswer
+          false, // showAnswer
+          genId // quizId
         )
       ) : (
         <p>No question available</p>
