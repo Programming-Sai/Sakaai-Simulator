@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useState } from "react";
+import React, { useState } from "react";
 import styles from "./page.module.css";
 import { MCQQuizView } from "@/components/MCQ/MCQQuizView";
 import { SATAQuizView } from "@/components/SATA/SATAQuizView";
@@ -74,48 +74,46 @@ export default function Quiz() {
   // console.log("Q&A: ", questions, answers);
 
   return (
-    <Suspense fallback={null}>
-      <div className={styles.quizContainer}>
-        <SolvedSoFar questions={questions} answers={answers} />
-        {/* <div>Timer</div> */}
-        <div className={styles.quizProgress}>
-          <p>
-            Question {index + 1} of {questions.length}{" "}
-          </p>
-          <p style={{ opacity: 0.5 }}> | </p>
-          <p> 1 point(s)</p>
-        </div>
-
-        {questions[index] && questionMapping[questions[index].type] ? (
-          questionMapping[questions[index].type](
-            index,
-            questions[index], // question (object)
-            data.answers?.[genId]?.[index] ?? null, // userAnswer
-            false, // showAnswer
-            genId // quizId
-          )
-        ) : (
-          <p>No question available</p>
-        )}
-
-        {/* Padding for view and cickable area expansion. */}
-        <div className={styles.quizButtons}>
-          <button onClick={() => setIndex((i) => i - 1)} disabled={index === 0}>
-            Previous
-          </button>
-          <button
-            onClick={() => setIndex((i) => i + 1)}
-            disabled={index === questions.length - 1}
-          >
-            Next
-          </button>
-          <button>
-            <Link href={`/results?genId=${encodeURIComponent(genId)}`}>
-              Submit for Grading
-            </Link>
-          </button>
-        </div>
+    <div className={styles.quizContainer}>
+      <SolvedSoFar questions={questions} answers={answers} />
+      {/* <div>Timer</div> */}
+      <div className={styles.quizProgress}>
+        <p>
+          Question {index + 1} of {questions.length}{" "}
+        </p>
+        <p style={{ opacity: 0.5 }}> | </p>
+        <p> 1 point(s)</p>
       </div>
-    </Suspense>
+
+      {questions[index] && questionMapping[questions[index].type] ? (
+        questionMapping[questions[index].type](
+          index,
+          questions[index], // question (object)
+          data.answers?.[genId]?.[index] ?? null, // userAnswer
+          false, // showAnswer
+          genId // quizId
+        )
+      ) : (
+        <p>No question available</p>
+      )}
+
+      {/* Padding for view and cickable area expansion. */}
+      <div className={styles.quizButtons}>
+        <button onClick={() => setIndex((i) => i - 1)} disabled={index === 0}>
+          Previous
+        </button>
+        <button
+          onClick={() => setIndex((i) => i + 1)}
+          disabled={index === questions.length - 1}
+        >
+          Next
+        </button>
+        <button>
+          <Link href={`/results?genId=${encodeURIComponent(genId)}`}>
+            Submit for Grading
+          </Link>
+        </button>
+      </div>
+    </div>
   );
 }

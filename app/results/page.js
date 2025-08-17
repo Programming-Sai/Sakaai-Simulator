@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import styles from "./page.module.css";
 import ProgressCircle from "@/components/ProgressCircle/ProgressCircle";
 import { MCQQuizView } from "@/components/MCQ/MCQQuizView";
@@ -185,99 +185,97 @@ export default function Results() {
 
   // render ---------------------------------------------------------
   return (
-    <Suspense fallback={null}>
-      <div className={styles.resultContatiner}>
-        <h2>Quiz Results</h2>
+    <div className={styles.resultContatiner}>
+      <h2>Quiz Results</h2>
 
-        <div className={styles.center}>
-          <ProgressCircle
-            textColor={theme === "dark" ? "white" : "black"}
-            progress={percentCorrect}
-            progressColor={percentCorrect >= 50 ? "lightgreen" : "red"}
-          />
-        </div>
-
-        <div className={styles.breakdowns}>
-          <ProgressCircle
-            textColor={theme === "dark" ? "white" : "black"}
-            progress={percentWrong}
-            size={80}
-            strokeWidth={5}
-            progressColor="red"
-            text={`${counts.wrongCount}/${counts.total}`}
-          />
-          <ProgressCircle
-            textColor={theme === "dark" ? "white" : "black"}
-            progress={percentCorrect}
-            size={80}
-            strokeWidth={5}
-            progressColor="lightgreen"
-            text={`${counts.correctCount}/${counts.total}`}
-          />
-          <ProgressCircle
-            textColor={theme === "dark" ? "white" : "black"}
-            progress={
-              counts.total
-                ? Math.round((counts.unansweredCount / counts.total) * 100)
-                : 0
-            }
-            size={80}
-            strokeWidth={5}
-            progressColor="grey"
-            text={`${counts.unansweredCount}`}
-          />
-        </div>
-
-        <div className={styles.resultsButtons}>
-          <button>
-            <Link href={`/quiz?genId=${encodeURIComponent(genId)}`}>
-              Retake Quiz
-            </Link>
-          </button>
-
-          <button>
-            <Link href="/">Back Home</Link>
-          </button>
-        </div>
-
-        <div className={styles.resultFilterContainer}>
-          {[
-            ["all", "All"],
-            ["correct", "Correct"],
-            ["wrong", "Wrong"],
-            ["unanswered", "Unanswered"],
-          ].map(([id, label]) => (
-            <div
-              key={id}
-              onClick={() => setCurrentFilter(id)}
-              className={`${styles.filter} ${
-                currentFilter === id ? styles.filterActive : ""
-              }`}
-            >
-              {label}
-            </div>
-          ))}
-        </div>
-
-        <div className={styles.quizzes}>
-          {filtered.map((p) => {
-            const Renderer = questionMapping[p.question.type];
-            if (!Renderer) return null;
-            return (
-              <div key={`${genId}-${p.index}`} style={{ marginBottom: 12 }}>
-                {Renderer(
-                  p.index,
-                  p.question,
-                  // pass the raw stored answer (child components are tolerant)
-                  p.user ?? null,
-                  true,
-                  genId
-                )}
-              </div>
-            );
-          })}
-        </div>
+      <div className={styles.center}>
+        <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
+          progress={percentCorrect}
+          progressColor={percentCorrect >= 50 ? "lightgreen" : "red"}
+        />
       </div>
-    </Suspense>
+
+      <div className={styles.breakdowns}>
+        <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
+          progress={percentWrong}
+          size={80}
+          strokeWidth={5}
+          progressColor="red"
+          text={`${counts.wrongCount}/${counts.total}`}
+        />
+        <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
+          progress={percentCorrect}
+          size={80}
+          strokeWidth={5}
+          progressColor="lightgreen"
+          text={`${counts.correctCount}/${counts.total}`}
+        />
+        <ProgressCircle
+          textColor={theme === "dark" ? "white" : "black"}
+          progress={
+            counts.total
+              ? Math.round((counts.unansweredCount / counts.total) * 100)
+              : 0
+          }
+          size={80}
+          strokeWidth={5}
+          progressColor="grey"
+          text={`${counts.unansweredCount}`}
+        />
+      </div>
+
+      <div className={styles.resultsButtons}>
+        <button>
+          <Link href={`/quiz?genId=${encodeURIComponent(genId)}`}>
+            Retake Quiz
+          </Link>
+        </button>
+
+        <button>
+          <Link href="/">Back Home</Link>
+        </button>
+      </div>
+
+      <div className={styles.resultFilterContainer}>
+        {[
+          ["all", "All"],
+          ["correct", "Correct"],
+          ["wrong", "Wrong"],
+          ["unanswered", "Unanswered"],
+        ].map(([id, label]) => (
+          <div
+            key={id}
+            onClick={() => setCurrentFilter(id)}
+            className={`${styles.filter} ${
+              currentFilter === id ? styles.filterActive : ""
+            }`}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.quizzes}>
+        {filtered.map((p) => {
+          const Renderer = questionMapping[p.question.type];
+          if (!Renderer) return null;
+          return (
+            <div key={`${genId}-${p.index}`} style={{ marginBottom: 12 }}>
+              {Renderer(
+                p.index,
+                p.question,
+                // pass the raw stored answer (child components are tolerant)
+                p.user ?? null,
+                true,
+                genId
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
