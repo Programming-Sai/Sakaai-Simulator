@@ -27,16 +27,16 @@ export default function RootLayout({ children, feedback }) {
                 <Header setOpenSideBar={setOpenSideBar} />
                 <Loader />
                 <div className="app-layout">
-                  <Suspense fallback={null}>
-                    <aside>
+                  <aside>
+                    <Suspense fallback={null}>
                       <Sidebar
                         openSideBar={openSideBar}
                         setOpenSideBar={setOpenSideBar}
                       />
-                    </aside>
-                    <main>{children}</main>
-                    {feedback}
-                  </Suspense>
+                    </Suspense>
+                  </aside>
+                  <main>{children}</main>
+                  {feedback}
                 </div>
               </DataProvider>
             </ToastProvider>
