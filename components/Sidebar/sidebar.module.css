@@ -104,6 +104,7 @@
   border: none;
   color: var(--text);
   outline: none;
+  text-align: right;
 }
 
 .list > li > ul {

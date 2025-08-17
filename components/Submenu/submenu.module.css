@@ -1,0 +1,31 @@
+.portalRoot {
+  position: fixed;
+  inset: 0; /* covers entire viewport to capture clicks if needed */
+  pointer-events: none; /* allow clicks to pass through outside the menu */
+  z-index: 900;
+}
+
+.submenu {
+  pointer-events: auto; /* enable interactions inside the menu */
+  background: var(--panel);
+  border: 1px solid var(--muted);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 6px;
+  user-select: none;
+}
+
+.item:hover {
+  background: rgba(0, 0, 0, 0.06);
+}

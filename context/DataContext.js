@@ -403,6 +403,205 @@ export function DataProvider({ children }) {
     });
   }
 
+  // Delete a single generation (history item + quizzes + answers + results)
+  function deleteGeneration(genId) {
+    setData((prev) => {
+      const nextResults = { ...(prev.results || {}) };
+      const nextQuizzes = { ...(prev.quizzes || {}) };
+      const nextAnswers = { ...(prev.answers || {}) };
+      const nextHistory = (prev.history || []).filter(
+        (h) => h.generationId !== genId
+      );
+
+      // remove in-memory
+      delete nextResults[genId];
+      delete nextQuizzes[genId];
+      delete nextAnswers[genId];
+
+      // persist changes to localStorage
+      try {
+        const quizzesMap = readJSON(QUIZZES_KEY, {});
+        delete quizzesMap[genId];
+        writeJSON(QUIZZES_KEY, quizzesMap);
+
+        const storedHistory = readJSON(HISTORY_KEY, []).filter(
+          (h) => h.generationId !== genId
+        );
+        writeJSON(HISTORY_KEY, dedupeHistoryArray(storedHistory));
+
+        const answersMap = readJSON(ANSWERS_KEY, {});
+        delete answersMap[genId];
+        writeJSON(ANSWERS_KEY, answersMap);
+
+        const prevUsed = prev.usage?.used || 0;
+        const nextUsage = {
+          ...(prev.usage || {}),
+          used: Math.max(0, prevUsed - 1),
+        };
+        writeJSON(USAGE_KEY, nextUsage);
+
+        return {
+          ...prev,
+          results: nextResults,
+          quizzes: nextQuizzes,
+          answers: nextAnswers,
+          history: nextHistory,
+          usage: nextUsage,
+        };
+      } catch (e) {
+        console.warn("deleteGeneration failed", e);
+        return prev;
+      }
+    });
+  }
+
+  // Duplicate a generation: copy quizzes, results and add a new history item
+  function duplicateGeneration(genId) {
+    setData((prev) => {
+      const sourceQuizzes =
+        (prev.quizzes || {})[genId] || prev.results?.[genId]?.quizzes || [];
+      if (!sourceQuizzes || !sourceQuizzes.length) return prev;
+
+      const newGenId = makeGenId();
+      const now = new Date().toISOString();
+
+      const newHistoryItem = {
+        generationId: newGenId,
+        requestId: prev.requestId,
+        topic: `Copy of ${
+          prev.history.find((h) => h.generationId === genId)?.topic || "quiz"
+        }`,
+        preview: (sourceQuizzes[0]?.question || "").slice(0, 120),
+        question_count: sourceQuizzes.length,
+        createdAt: now,
+        model_used: prev.results?.[genId]?.meta?.model_used || null,
+      };
+
+      const nextQuizzes = {
+        ...(prev.quizzes || {}),
+        [newGenId]: sourceQuizzes,
+      };
+      const nextResults = {
+        ...(prev.results || {}),
+        [newGenId]: {
+          meta: prev.results?.[genId]?.meta || null,
+          quizzes: sourceQuizzes,
+        },
+      };
+      const nextHistory = [newHistoryItem, ...(prev.history || [])].slice(
+        0,
+        200
+      );
+      const nextUsage = {
+        ...(prev.usage || {}),
+        used: (prev.usage?.used || 0) + 1,
+      };
+
+      // persist
+      try {
+        const quizzesMap = readJSON(QUIZZES_KEY, {});
+        quizzesMap[newGenId] = sourceQuizzes;
+        writeJSON(QUIZZES_KEY, quizzesMap);
+
+        const storedHistory = readJSON(HISTORY_KEY, []);
+        writeJSON(
+          HISTORY_KEY,
+          dedupeHistoryArray([newHistoryItem, ...storedHistory]).slice(0, 200)
+        );
+
+        writeJSON(USAGE_KEY, nextUsage);
+      } catch (e) {
+        console.warn("duplicateGeneration persist failed", e);
+      }
+
+      return {
+        ...prev,
+        quizzes: nextQuizzes,
+        results: nextResults,
+        history: nextHistory,
+        usage: nextUsage,
+      };
+    });
+  }
+
+  // Prepare export object for a generation (returns an object); caller can JSON.stringify or download
+  function getExportData(genId) {
+    const quizzesMap = readJSON(QUIZZES_KEY, {});
+    const storedHistory = readJSON(HISTORY_KEY, []);
+    const answersMap = readJSON(ANSWERS_KEY, {});
+    const hist = storedHistory.find((h) => h.generationId === genId) || null;
+    const quizzes = quizzesMap[genId] || [];
+    const exportObj = {
+      generationId: genId,
+      history: hist,
+      quizzes,
+      answers: answersMap[genId] || {},
+      exportedAt: new Date().toISOString(),
+    };
+    return exportObj;
+  }
+
+  // Trigger download for a generation (client-side)
+  function downloadGeneration(genId, filename) {
+    const data = getExportData(genId);
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || `sakaai-quiz-${genId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // Update the history item metadata (rename/annotate)
+  function updateHistoryItem(genId, updates = {}) {
+    setData((prev) => {
+      const nextHistory = (prev.history || []).map((h) =>
+        h.generationId === genId ? { ...h, ...updates } : h
+      );
+
+      // persist
+      try {
+        writeJSON(HISTORY_KEY, dedupeHistoryArray(nextHistory));
+      } catch (e) {
+        console.warn("updateHistoryItem failed persist", e);
+      }
+
+      return {
+        ...prev,
+        history: nextHistory,
+      };
+    });
+  }
+
+  // Clear all history (with wipe of quizzes and answers) — use with caution
+  function clearAllHistory() {
+    setData((prev) => {
+      try {
+        writeJSON(HISTORY_KEY, []);
+        writeJSON(QUIZZES_KEY, {});
+        writeJSON(ANSWERS_KEY, {});
+        writeJSON(USAGE_KEY, { used: 0, limit: MAX_QUIZZES });
+      } catch (e) {
+        console.warn("clearAllHistory persist failed", e);
+      }
+      return {
+        ...prev,
+        history: [],
+        quizzes: {},
+        answers: {},
+        results: {},
+        usage: { used: 0, limit: MAX_QUIZZES },
+      };
+    });
+  }
+
+  // Expose these in value object (add to the 'value' returned by provider)
+
   const value = {
     data,
     setData,
@@ -419,6 +618,13 @@ export function DataProvider({ children }) {
     resetAll,
     setAnswer,
     resetAnswers,
+
+    deleteGeneration,
+    duplicateGeneration,
+    getExportData,
+    downloadGeneration,
+    updateHistoryItem,
+    clearAllHistory,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
