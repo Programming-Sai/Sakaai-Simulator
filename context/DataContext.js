@@ -233,8 +233,12 @@ export function DataProvider({ children }) {
         console.warn("persist pushResponseToData failed", e);
       }
 
+      const nextQuizzesMap = { ...(prev.quizzes || {}) };
+      nextQuizzesMap[genId] = quizzes;
+
       return {
         ...prev,
+        quizzes: nextQuizzesMap, // <--- add this
         results: nextResults,
         history: nextHistory,
         usage: nextUsage,

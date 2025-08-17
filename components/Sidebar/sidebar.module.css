@@ -18,7 +18,7 @@
 .list {
   display: flex;
   flex-direction: column;
-  margin-top: 8px;
+  margin-top: -5%;
   height: 50vh;
   gap: 8px;
   overflow-y: auto;
@@ -29,7 +29,7 @@
 
 /* each item fills the container width and controls padding/hover */
 .listItem {
-  display: block; /* block so width:100% behaves */
+  display: flex; /* block so width:100% behaves */
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
@@ -39,6 +39,8 @@
   text-decoration: none;
   list-style: none;
   color: inherit;
+  flex-direction: row;
+  position: relative;
 }
 
 /* the inner text that actually truncates */
@@ -95,6 +97,26 @@
 
 .newButton:hover {
   transform: scale(1.025);
+}
+
+.list > li > button {
+  background-color: transparent;
+  border: none;
+  color: var(--text);
+  outline: none;
+}
+
+.list > li > ul {
+  position: absolute;
+  bottom: 0;
+  right: 10%;
+  background-color: red;
+  z-index: 2000;
+  display: none;
+}
+
+.list > li > button:focus-within .list > li > ul {
+  display: block;
 }
 
 @media (max-width: 1024px) {

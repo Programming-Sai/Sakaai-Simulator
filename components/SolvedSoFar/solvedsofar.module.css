@@ -1,0 +1,7 @@
+.ssfContainer {
+  position: absolute;
+  right: 5px;
+  top: 10%;
+  background-color: var(--panel);
+  padding: 10px;
+}

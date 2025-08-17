@@ -6,7 +6,7 @@ import { AppProvider } from "../context/AppContext";
 import ToastProvider from "../context/ToastContext";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Loader from "@/components/Loader/Loader";
 import { DataProvider } from "@/context/DataContext";
 
@@ -28,7 +28,12 @@ export default function RootLayout({ children, feedback }) {
                 <Loader />
                 <div className="app-layout">
                   <aside>
-                    <Sidebar openSideBar={openSideBar} />
+                    <Suspense fallback={null}>
+                      <Sidebar
+                        openSideBar={openSideBar}
+                        setOpenSideBar={setOpenSideBar}
+                      />
+                    </Suspense>
                   </aside>
                   <main>{children}</main>
                   {feedback}

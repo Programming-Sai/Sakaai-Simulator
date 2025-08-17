@@ -1,8 +1,11 @@
 .resultContatiner {
   margin: 0 auto;
   margin-top: 80px;
-  /* width: fit-content; */
   width: 90%;
+}
+
+.resultContatiner h2 {
+  margin-block: 50px;
 }
 
 .resultsButtons {
@@ -77,5 +80,14 @@
   }
   .resultsButtons {
     gap: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .resultFilterContainer div {
+    font-size: 0.8rem;
+  }
+  .breakdowns {
+    gap: 15px;
   }
 }

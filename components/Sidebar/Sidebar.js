@@ -6,10 +6,13 @@ import Link from "next/link";
 import { useData } from "@/context/DataContext";
 import { useSearchParams } from "next/navigation";
 
-export default function Sidebar({ openSideBar }) {
+export default function Sidebar({ openSideBar, setOpenSideBar }) {
   const { data } = useData();
   const searchParams = useSearchParams();
   const genId = searchParams.get("genId");
+  const [subMenOpen, setSubMenuOpen] = useState(
+    data?.history.map((hist, id) => ({ id, value: false }))
+  );
 
   return (
     <div
@@ -31,7 +34,11 @@ export default function Sidebar({ openSideBar }) {
           />
         </div>
       </div>
-      <Link href="/" className={styles.newButton}>
+      <Link
+        onClick={() => setOpenSideBar((prev) => !prev)}
+        href="/"
+        className={styles.newButton}
+      >
         ✚ New Quiz
       </Link>
       <h3 className={styles.quizHeader}>Quizzes</h3>
@@ -47,6 +54,7 @@ export default function Sidebar({ openSideBar }) {
               key={h.generationId}
               role="button"
               tabIndex={0}
+              onClick={() => setOpenSideBar((prev) => !prev)}
             >
               <Link
                 href={`/quiz?genId=${encodeURIComponent(h.generationId)}`}
@@ -55,6 +63,29 @@ export default function Sidebar({ openSideBar }) {
               >
                 {h?.preview || h?.topic || "Untitled quiz"}
               </Link>
+              <button
+                onClick={() =>
+                  setSubMenuOpen((prev) => {
+                    // if
+                  })
+                }
+              >
+                ...
+              </button>
+              <ul className={styles.submenu}>
+                <li>
+                  <p>option 1</p>
+                </li>{" "}
+                <li>
+                  <p>option 1</p>
+                </li>{" "}
+                <li>
+                  <p>option 1</p>
+                </li>{" "}
+                <li>
+                  <p>option 1</p>
+                </li>
+              </ul>
             </li>
           ))}
         </ul>

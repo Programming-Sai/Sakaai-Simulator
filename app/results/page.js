@@ -77,7 +77,7 @@ export default function Results() {
     ),
   };
 
-  const questions = data?.quizzes?.[genId] || [];
+  const questions = data?.quizzes?.[genId] || {};
   const answers = data?.answers?.[genId] || {};
 
   // helpers --------------------------------------------------------
@@ -192,7 +192,7 @@ export default function Results() {
         <ProgressCircle
           textColor={theme === "dark" ? "white" : "black"}
           progress={percentCorrect}
-          progressColor={percentCorrect > 50 ? "lightgreen" : "red"}
+          progressColor={percentCorrect >= 50 ? "lightgreen" : "red"}
         />
       </div>
 
@@ -242,7 +242,6 @@ export default function Results() {
       <div className={styles.resultFilterContainer}>
         {[
           ["all", "All"],
-
           ["correct", "Correct"],
           ["wrong", "Wrong"],
           ["unanswered", "Unanswered"],

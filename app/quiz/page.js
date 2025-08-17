@@ -10,6 +10,7 @@ import { EssayQuizView } from "@/components/Essay/EssayQuizView";
 import { useSearchParams } from "next/navigation";
 import { useData } from "@/context/DataContext";
 import Link from "next/link";
+import SolvedSoFar from "@/components/SolvedSoFar/SolvedSoFar";
 
 export default function Quiz() {
   const { data, setAnswer } = useData();
@@ -69,9 +70,12 @@ export default function Quiz() {
   };
   const [index, setIndex] = useState(0);
   const questions = data?.quizzes[genId] || [];
+  const answers = data?.answers?.[genId] || {};
+  // console.log("Q&A: ", questions, answers);
 
   return (
     <div className={styles.quizContainer}>
+      <SolvedSoFar questions={questions} answers={answers} />
       {/* <div>Timer</div> */}
       <div className={styles.quizProgress}>
         <p>

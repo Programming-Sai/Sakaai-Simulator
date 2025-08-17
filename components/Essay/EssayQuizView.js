@@ -14,12 +14,22 @@ export const EssayQuizView = ({
       <textarea
         className={styles.essayBox}
         placeholder="Your Answer"
-        value={showAnswer ? question?.answer : userAnswer ?? ""}
+        // value={userAnswer ?? ""}
+        value={showAnswer ? question?.explanation : userAnswer ?? ""}
         readOnly={showAnswer}
         onChange={(e) =>
           !showAnswer && onAnswer && onAnswer(quizId, index, e.target.value)
         }
       />
+      <br />
+      <br />
+      <br />
+      {showAnswer && (
+        <span>
+          <b>Your Response: </b>
+          {userAnswer}{" "}
+        </span>
+      )}
     </div>
   );
 };
