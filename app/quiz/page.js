@@ -69,13 +69,19 @@ export default function Quiz() {
     ),
   };
   const [index, setIndex] = useState(0);
+  const [allowGoto, setAllowGoto] = useState(true);
   const questions = data?.quizzes[genId] || [];
   const answers = data?.answers?.[genId] || {};
   // console.log("Q&A: ", questions, answers);
 
   return (
     <div className={styles.quizContainer}>
-      <SolvedSoFar questions={questions} answers={answers} />
+      <SolvedSoFar
+        questions={questions}
+        answers={answers}
+        setIndex={setIndex}
+        allowGoto={allowGoto}
+      />
       {/* <div>Timer</div> */}
       <div className={styles.quizProgress}>
         <p>

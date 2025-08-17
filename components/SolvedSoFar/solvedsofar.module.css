@@ -1,7 +1,74 @@
 .ssfContainer {
   position: absolute;
   right: 5px;
-  top: 10%;
+  top: 25%;
   background-color: var(--panel);
-  padding: 10px;
+  border-bottom-left-radius: 5px;
+}
+
+.ssfBox {
+  display: none;
+  padding: 20px;
+}
+
+.active {
+  display: block;
+}
+
+.solvedBox {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 items per row */
+  column-gap: 20px;
+  row-gap: 10px;
+}
+
+.solved {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1px;
+}
+
+.solved input,
+.solved p,
+.progressData span input,
+.progressData span p {
+  padding: 0;
+  margin: 1px;
+}
+
+.progressData {
+  position: relative;
+}
+
+.questionProgressButton {
+  position: absolute;
+  top: 30%;
+  right: 60%;
+  cursor: pointer;
+  padding: 10px 20px;
+  background-color: red;
+  background-color: var(--panel);
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  text-wrap: nowrap;
+  transform: rotate(-90deg);
+}
+
+.progressData span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+}
+
+.progressData p {
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 1024px) {
+  .questionProgressButton {
+    display: none;
+  }
 }

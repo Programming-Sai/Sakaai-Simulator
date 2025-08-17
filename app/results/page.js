@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export default function Results() {
   const { theme } = useTheme();
-  const { data, setAnswer } = useData();
+  const { data, setAnswer, resetAnswers } = useData();
   const searchParams = useSearchParams();
   const genId = searchParams.get("genId");
   const [currentFilter, setCurrentFilter] = useState("all");
@@ -229,7 +229,10 @@ export default function Results() {
 
       <div className={styles.resultsButtons}>
         <button>
-          <Link href={`/quiz?genId=${encodeURIComponent(genId)}`}>
+          <Link
+            onClick={() => resetAnswers(genId)}
+            href={`/quiz?genId=${encodeURIComponent(genId)}`}
+          >
             Retake Quiz
           </Link>
         </button>
