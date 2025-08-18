@@ -28,7 +28,7 @@ sheet = client.open_by_key(sheet_id)
 feedback_questions_raw = os.getenv("FEEDBACK_QUESTIONS", "[]")
 try:
     QUESTIONS = json.loads(feedback_questions_raw)
-    # print("Questions Loaded: ", QUESTIONS)
+    print("Questions Loaded: ", QUESTIONS)
 except Exception:
     QUESTIONS = [
     "What frustrated you the most while using this?",
