@@ -24,8 +24,15 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   function validate() {
-    if (!numQuestions || numQuestions < 1 || numQuestions > 30) {
-      return "Number of questions must be between 1 and 30.";
+    if (
+      !numQuestions ||
+      numQuestions < 1 ||
+      numQuestions > data?.config?.max_number_of_questions_per_generation ||
+      30
+    ) {
+      return `Number of questions must be between 1 and ${
+        data?.config?.max_number_of_questions_per_generation || 30
+      }.`;
     }
     if (
       !optionsPerQuestion ||
@@ -86,13 +93,15 @@ export default function Home() {
 
         <input
           type="number"
-          max={30}
+          max={data?.config?.max_number_of_questions_per_generation || 30}
           min={1}
           className={styles.number}
           value={numQuestions}
           onChange={(e) => setNumQuestions(e.target.value)}
           placeholder="Number of Questions"
-          title="Number of Question, max: 30"
+          title={`Number of Question, max: ${
+            data?.config?.max_number_of_questions_per_generation || 30
+          }`}
         />
         <input
           type="number"

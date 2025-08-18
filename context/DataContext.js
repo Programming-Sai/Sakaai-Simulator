@@ -12,6 +12,7 @@ const USAGE_KEY = "sakaai:usage";
 const ANSWERS_KEY = "sakaai:answers";
 const FB_KEY = "sakaai:feedback_conversation";
 const FB_DONE_KEY = "sakaai:feedback_completed";
+const CONFIG_KEY = "sakaai:config";
 
 const DataContext = createContext();
 
@@ -88,6 +89,13 @@ export function DataProvider({ children }) {
     currentInput: "", // typed draft
     inFlight: false, // network sending
     lastSavedAt: null,
+
+    config: {
+      max_file_size: 5, // MB default
+      max_number_of_questions_per_generation: 30,
+      max_requests_per_day: MAX_QUIZZES,
+      feedback_questions: [],
+    },
   });
 
   // global loading flag
@@ -108,18 +116,63 @@ export function DataProvider({ children }) {
     return id;
   });
 
-  // wake backend on provider mount (try /health then fallback to base url)
+  async function fetchAndSyncConfig() {
+    try {
+      const res = await fetch(`${API_BASE}/`, { method: "GET" });
+      if (!res.ok) {
+        // If not OK, don't throw — fallback to previously stored config
+        console.warn("health check returned not ok", res.status);
+        return null;
+      }
+      const json = await res.json();
+      const cfg = json?.config || null;
+
+      if (cfg) {
+        // Normalize: ensure numeric types, arrays
+        const normalized = {
+          max_file_size: Number(cfg.max_file_size) || 5,
+          max_number_of_questions_per_generation:
+            Number(cfg.max_number_of_questions_per_generation) || 30,
+          max_requests_per_day: Number(cfg.max_requests_per_day) || MAX_QUIZZES,
+          feedback_questions: Array.isArray(cfg.feedback_questions)
+            ? cfg.feedback_questions.slice()
+            : [],
+        };
+
+        // persist to localStorage
+        writeJSON(CONFIG_KEY, normalized);
+
+        // update state; also update usage.limit if it's not present or we want to keep in sync
+        setData((prev) => {
+          const nextUsage = { ...(prev.usage || {}) };
+          // only override limit if the stored limit appears missing or already default
+          if (!nextUsage?.limit || nextUsage.limit === MAX_QUIZZES) {
+            nextUsage.limit = normalized.max_requests_per_day;
+          }
+          return {
+            ...prev,
+            config: normalized,
+            usage: nextUsage,
+          };
+        });
+
+        return normalized;
+      }
+      console.log("Fetching Data: ", data?.config);
+    } catch (err) {
+      console.warn("fetchAndSyncConfig failed", err);
+      return null;
+    }
+    return null;
+  }
+
+  // wake backend on provider mount (try / then fallback to base url)
   useEffect(() => {
+    console.log("Waking Server!!!");
     let cancelled = false;
     async function wake() {
       try {
-        const healthUrl = `${API_BASE}/health`;
-        let res = await fetch(healthUrl, { method: "GET" });
-        if (!res.ok) {
-          // fallback to base
-          res = await fetch(API_BASE, { method: "GET" });
-        }
-        // If you want to check JSON: const json = await res.json()
+        await fetchAndSyncConfig();
       } catch (err) {
         // ignore — backend might still be sleeping. We'll still clear loading.
       } finally {
@@ -144,6 +197,7 @@ export function DataProvider({ children }) {
         open: false,
       });
       const storedFeedbackDone = readJSON(FB_DONE_KEY, false);
+      const storedConfig = readJSON(CONFIG_KEY, null);
 
       // dedupe storedHistory right away
       const dedupedHistory = dedupeHistoryArray(storedHistory);
@@ -157,7 +211,11 @@ export function DataProvider({ children }) {
         ...prev,
         answers: storedAnswers || prev.answers,
         history: dedupedHistory || prev.history,
-        usage: storedUsage || prev.usage || { used: 0, limit: MAX_QUIZZES },
+        usage: storedUsage ||
+          prev.usage || {
+            used: 0,
+            limit: storedConfig?.max_requests_per_day || MAX_QUIZZES,
+          },
         quizzes: Object.keys(prev.quizzes || {}).length
           ? prev.quizzes
           : storedQuizzesMap,
@@ -166,6 +224,7 @@ export function DataProvider({ children }) {
         currentInput: storedFeedback.currentInput || prev.currentInput,
         open: !!storedFeedback.open || prev.open,
         feedbackDone: storedFeedbackDone || false,
+        config: storedConfig || prev.config,
       }));
     } catch (e) {
       console.warn("DataProvider init error", e);
@@ -288,8 +347,13 @@ export function DataProvider({ children }) {
     const generationId = makeGenId();
 
     // Check usage remaining (per-request model)
-    const currUsage = data?.usage || { used: 0, limit: MAX_QUIZZES };
-    const remaining = (currUsage.limit ?? MAX_QUIZZES) - (currUsage.used ?? 0);
+    const currUsage = data?.usage || {
+      used: 0,
+      limit: data?.max_requests_per_day || MAX_QUIZZES,
+    };
+    const effectiveLimit =
+      data?.config?.max_requests_per_day ?? currUsage.limit ?? MAX_QUIZZES;
+    const remaining = effectiveLimit - (currUsage.used ?? 0);
     if (remaining <= 0) {
       return { ok: false, error: new Error("Usage limit reached") };
     }
@@ -363,7 +427,7 @@ export function DataProvider({ children }) {
       answers: {},
       feedback: {},
       history: [],
-      usage: { used: 0, limit: MAX_QUIZZES },
+      usage: { used: 0, limit: data?.max_requests_per_day || MAX_QUIZZES },
       setupInstructions: null,
       results: {},
       lastRequestMeta: null,
@@ -604,7 +668,10 @@ export function DataProvider({ children }) {
         writeJSON(HISTORY_KEY, []);
         writeJSON(QUIZZES_KEY, {});
         writeJSON(ANSWERS_KEY, {});
-        writeJSON(USAGE_KEY, { used: 0, limit: MAX_QUIZZES });
+        writeJSON(USAGE_KEY, {
+          used: 0,
+          limit: data?.max_requests_per_day || MAX_QUIZZES,
+        });
       } catch (e) {
         console.warn("clearAllHistory persist failed", e);
       }
@@ -614,7 +681,7 @@ export function DataProvider({ children }) {
         quizzes: {},
         answers: {},
         results: {},
-        usage: { used: 0, limit: MAX_QUIZZES },
+        usage: { used: 0, limit: data?.max_requests_per_day || MAX_QUIZZES },
       };
     });
   }
@@ -689,52 +756,104 @@ export function DataProvider({ children }) {
   }
 
   // submit feedback to backend
-  async function submitFeedback({ padTo = 0 } = {}) {
-    // derive answers from user messages only
-    const messagesSnapshot =
-      readJSON(FB_KEY, { messages: [], currentInput: "" }).messages || [];
+  async function submitFeedback({
+    padTo = 0,
+    maxRetries = 3,
+    initialDelayMs = 800,
+    clear = false,
+  } = {}) {
+    // derive answers from latest persisted draft (keeps behaviour you already had)
+    const draft = readJSON(FB_KEY, { messages: [], currentInput: "" });
+    const messagesSnapshot = draft.messages || [];
     const answers = messagesSnapshot
       .filter((m) => m.role === "user")
       .map((m) => String(m.text || ""));
 
-    // optional padding (if server expects fixed length)
+    // optional padding
     while (answers.length < padTo) answers.push("");
 
-    const body = { requestId, answers }; // NOTE: server uses camelCase requestId
+    const body = { requestId, answers };
 
+    // mark in-flight UI state
     setData((prev) => ({ ...prev, inFlight: true }));
-    try {
-      const res = await fetch(`${API_BASE}/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Feedback server error ${res.status}: ${txt}`);
-      }
-      const json = await res.json();
 
-      // success => mark done, clear draft
-      setFeedbackDoneFlag(true);
-      persistFeedbackDraft([], "", false);
-      setData((prev) => ({
-        ...prev,
-        messages: [],
-        currentInput: "",
-        open: false,
-        inFlight: false,
-        lastSavedAt: new Date().toISOString(),
-        feedbackDone: true,
-        feedbackResponseMeta: json,
-      }));
-      return { ok: true, json };
-    } catch (err) {
-      console.error("submitFeedback failed", err);
-      // keep draft so user can retry
-      setData((prev) => ({ ...prev, inFlight: false }));
-      return { ok: false, error: err };
+    // helper sleep
+    const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+    let attempt = 0;
+    let lastErr = null;
+
+    while (attempt < maxRetries) {
+      attempt += 1;
+      try {
+        const res = await fetch(`${API_BASE}/feedback`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          // try to parse JSON response (but don't throw if parse fails)
+          let json = null;
+          try {
+            json = await res.json();
+          } catch (e) {
+            json = { message: "ok" };
+          }
+
+          // success => mark done (persist flag)
+          setFeedbackDoneFlag(true); // persists FB_DONE_KEY
+
+          // If clear requested: clear persisted draft and clear in-memory conversation & close UI
+          if (clear) {
+            persistFeedbackDraft([], "", false);
+            setData((prev) => ({
+              ...prev,
+              messages: [],
+              currentInput: "",
+              open: false,
+              inFlight: false,
+              lastSavedAt: new Date().toISOString(),
+              feedbackDone: true,
+              feedbackResponseMeta: json,
+            }));
+          } else {
+            // If not clearing: keep messages/draft as-is, but update meta / flags
+            setData((prev) => ({
+              ...prev,
+              inFlight: false,
+              lastSavedAt: new Date().toISOString(),
+              feedbackDone: true,
+              feedbackResponseMeta: json,
+            }));
+            // NOTE: we *don't* call persistFeedbackDraft([], "", false) so draft stays in localStorage
+          }
+
+          return { ok: true, json };
+        } else {
+          // Non-2xx response — treat as failure to retry
+          const txt = await res.text().catch(() => "");
+          lastErr = new Error(`Feedback server error ${res.status}: ${txt}`);
+        }
+      } catch (err) {
+        lastErr = err;
+      }
+
+      // retry/backoff if we have attempts left
+      if (attempt < maxRetries) {
+        const delay = initialDelayMs * Math.pow(2, attempt - 1);
+        await sleep(delay);
+      }
     }
+
+    // final failure after retries: keep draft persisted and update state
+    console.error("submitFeedback final failure:", lastErr);
+
+    // ensure inFlight toggled off
+    setData((prev) => ({ ...prev, inFlight: false }));
+
+    // do not clear local draft — allow later retries
+    return { ok: false, error: lastErr };
   }
 
   // Expose these in value object (add to the 'value' returned by provider)
@@ -748,7 +867,7 @@ export function DataProvider({ children }) {
     generateQuiz,
     wakeBackend: async () => {
       try {
-        await fetch(`${API_BASE}/health`);
+        await fetchAndSyncConfig();
       } catch (e) {}
     },
     setSetupInstructions,

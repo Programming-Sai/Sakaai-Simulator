@@ -21,26 +21,26 @@ export default function RootLayout({ children, feedback }) {
 
       <body>
         <ThemeProvider>
-          <AppProvider>
-            <ToastProvider>
-              <DataProvider>
-                <Header setOpenSideBar={setOpenSideBar} />
-                <Loader />
-                <div className="app-layout">
-                  <Suspense fallback={null}>
-                    <aside>
-                      <Sidebar
-                        openSideBar={openSideBar}
-                        setOpenSideBar={setOpenSideBar}
-                      />
-                    </aside>
-                    <main>{children}</main>
-                    {feedback}
-                  </Suspense>
-                </div>
-              </DataProvider>
-            </ToastProvider>
-          </AppProvider>
+          {/* <AppProvider> */}
+          <ToastProvider>
+            <DataProvider>
+              <Header setOpenSideBar={setOpenSideBar} />
+              <Loader />
+              <div className="app-layout">
+                <Suspense fallback={null}>
+                  <aside>
+                    <Sidebar
+                      openSideBar={openSideBar}
+                      setOpenSideBar={setOpenSideBar}
+                    />
+                  </aside>
+                  <main>{children}</main>
+                  {feedback}
+                </Suspense>
+              </div>
+            </DataProvider>
+          </ToastProvider>
+          {/* </AppProvider> */}
         </ThemeProvider>
       </body>
     </html>
