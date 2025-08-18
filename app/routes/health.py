@@ -16,7 +16,8 @@ max_number_of_questions_per_generation = int(os.getenv("MAX_NUM_QUESTIONS", "30"
 feedback_questions_raw = os.getenv("FEEDBACK_QUESTIONS", "[]")
 try:
     feedback_questions = json.loads(feedback_questions_raw)
-except Exception:
+except Exception as e:
+    print(str(e))
     feedback_questions = []
 
 
