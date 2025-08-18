@@ -23,7 +23,14 @@ sheet = client.open_by_key(sheet_id)
 
 
 
-QUESTIONS = [
+
+
+feedback_questions_raw = os.getenv("FEEDBACK_QUESTIONS", "[]")
+try:
+    QUESTIONS = json.loads(feedback_questions_raw)
+    # print("Questions Loaded: ", QUESTIONS)
+except Exception:
+    QUESTIONS = [
     "What frustrated you the most while using this?",
     "Was anything confusing, broken, or just... not it?",
     "Was there anything that worked well for you?",

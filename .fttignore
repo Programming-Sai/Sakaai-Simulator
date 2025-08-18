@@ -2,3 +2,5 @@ sakaai
 .git
 __pycache__
 .pytest_cache
+.next
+node_modules

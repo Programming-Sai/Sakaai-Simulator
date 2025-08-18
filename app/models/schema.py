@@ -15,6 +15,7 @@ class HealthResponse(BaseModel):
     status: Literal["healthy", "unhealthy"]
     message: str
     failures: Optional[dict[str, bool]] = None
+    config: Optional[dict[str, str | int | list[str]]] = None
 
 
 

@@ -42,7 +42,30 @@ While the **frontend** will emulate Sakai’s quiz-taking and grading UI, this *
 
 ### 1. Health Check
 
-`GET /health` → `{ "status": "ok" }`
+`GET /health`
+
+Returns the current status of the Sakaai Simulator along with configuration details from environment variables.
+
+**Example Response:**
+
+```json
+{
+  "status": "healthy",
+  "message": "Sakaai Simulator is up and running.",
+  "config": {
+    "max_file_size": 5,
+    "max_number_of_questions_per_generation": 30,
+    "max_requests_per_day": 5,
+    "feedback_questions": [
+      "What frustrated you the most while using this?",
+      "Was anything confusing, broken, or just... not it?",
+      "Was there anything that worked well for you?",
+      "If you could change one thing about this app, what would it be?",
+      "Any final thoughts, rants, or feedback you wish we’d asked for?"
+    ]
+  }
+}
+```
 
 ### 2. Quiz Generation / Conversion
 
