@@ -1,6 +1,11 @@
 from typing import Any, Dict, List, Literal, Union, Optional
 from pydantic import BaseModel, Field, model_validator
 from enum import Enum
+from app.utils.config import get_config
+
+config = get_config()
+feedback_questions_length = len(config["feedback_questions"])
+print("Feedback Questions Length: ", feedback_questions_length)
 
 class SupportedFileType(str, Enum):
     pdf = "pdf"
@@ -115,4 +120,4 @@ class SubjectiveEvaluationResponse(BaseModel):
 
 class FeedbackRequest(BaseModel):
     requestId: Optional[str] = Field(None, description="User ID (if logged in)")
-    answers: List[str] = Field(..., min_items=5, max_items=5, description="Answers to feedback questions")
+    answers: List[str] = Field(..., min_items=feedback_questions_length, max_items=feedback_questions_length, description="Answers to feedback questions")
