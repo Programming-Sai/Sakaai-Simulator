@@ -74,7 +74,7 @@ export default function Sidebar({ openSideBar, setOpenSideBar }) {
       <h3 className={styles.quizHeader}>Quizzes</h3>
 
       {!data.history || data.history.length === 0 ? (
-        <p className="lead">No quizzes yet — hit "Generate" to get started.</p>
+        <p className="lead">No quizzes yet.</p>
       ) : (
         <ul className={styles.list}>
           {data.history.map((h) => (

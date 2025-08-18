@@ -3,14 +3,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const API_BASE = "https://sakaai-simulator.onrender.com"; // adjust if needed
-const REQUEST_ID_KEY = "sakaai:requestId";
 const MAX_QUIZZES = 10;
 
-// Add near top (after constants)
+const REQUEST_ID_KEY = "sakaai:requestId";
 const QUIZZES_KEY = "sakaai:quizzes";
 const HISTORY_KEY = "sakaai:history";
 const USAGE_KEY = "sakaai:usage";
 const ANSWERS_KEY = "sakaai:answers";
+const FB_KEY = "sakaai:feedback_conversation";
+const FB_DONE_KEY = "sakaai:feedback_completed";
 
 const DataContext = createContext();
 
@@ -79,6 +80,14 @@ export function DataProvider({ children }) {
     setupInstructions: null,
     results: {},
     lastRequestMeta: null,
+
+    open: false, // whether UI is visible
+    messages: [
+      // { id: "m_1", role: "bot"|"user", text: "question or reply", ts: "ISO" }
+    ],
+    currentInput: "", // typed draft
+    inFlight: false, // network sending
+    lastSavedAt: null,
   });
 
   // global loading flag
@@ -129,6 +138,12 @@ export function DataProvider({ children }) {
       const storedUsage = readJSON(USAGE_KEY, null);
       const storedQuizzesMap = readJSON(QUIZZES_KEY, {});
       const storedAnswers = readJSON(ANSWERS_KEY, {});
+      const storedFeedback = readJSON(FB_KEY, {
+        messages: [],
+        currentInput: "",
+        open: false,
+      });
+      const storedFeedbackDone = readJSON(FB_DONE_KEY, false);
 
       // dedupe storedHistory right away
       const dedupedHistory = dedupeHistoryArray(storedHistory);
@@ -147,6 +162,10 @@ export function DataProvider({ children }) {
           ? prev.quizzes
           : storedQuizzesMap,
         results: prev.results || {},
+        messages: storedFeedback.messages || prev.messages,
+        currentInput: storedFeedback.currentInput || prev.currentInput,
+        open: !!storedFeedback.open || prev.open,
+        feedbackDone: storedFeedbackDone || false,
       }));
     } catch (e) {
       console.warn("DataProvider init error", e);
@@ -600,6 +619,124 @@ export function DataProvider({ children }) {
     });
   }
 
+  // helper: persist feedback draft
+  function persistFeedbackDraft(
+    messages = [],
+    currentInput = "",
+    open = false
+  ) {
+    try {
+      writeJSON(FB_KEY, { messages, currentInput, open });
+    } catch (e) {
+      console.warn("persistFeedbackDraft failed", e);
+    }
+  }
+
+  function setFeedbackDoneFlag(done = true) {
+    try {
+      writeJSON(FB_DONE_KEY, !!done);
+    } catch (e) {
+      console.warn("setFeedbackDoneFlag failed", e);
+    }
+  }
+
+  // open/close feedback UI (modal)
+  function openFeedback() {
+    setData((prev) => {
+      persistFeedbackDraft(prev.messages || [], prev.currentInput || "", true);
+      return { ...prev, open: true };
+    });
+  }
+  function closeFeedback() {
+    setData((prev) => {
+      persistFeedbackDraft(prev.messages || [], prev.currentInput || "", false);
+      return { ...prev, open: false };
+    });
+  }
+
+  // add a message to feedback conversation (role = 'user' | 'bot')
+  function addFeedbackMessage(role, text) {
+    if (!text && text !== "") return;
+    const id =
+      "m_" +
+      Date.now().toString(36) +
+      "_" +
+      Math.random().toString(36).slice(2, 8);
+    const msg = { id, role, text: String(text), ts: new Date().toISOString() };
+    setData((prev) => {
+      const nextMessages = [...(prev.messages || []), msg];
+      persistFeedbackDraft(nextMessages, "", prev.open || false);
+      return { ...prev, messages: nextMessages, currentInput: "" };
+    });
+  }
+
+  // set the draft value (input field)
+  function setFeedbackInput(text) {
+    setData((prev) => {
+      persistFeedbackDraft(
+        prev.messages || [],
+        String(text || ""),
+        prev.open || false
+      );
+      return { ...prev, currentInput: String(text || "") };
+    });
+  }
+
+  // mark feedback done locally (no server call)
+  function markFeedbackDoneOnClient() {
+    setFeedbackDoneFlag(true);
+    setData((prev) => ({ ...prev, feedbackDone: true }));
+  }
+
+  // submit feedback to backend
+  async function submitFeedback({ padTo = 0 } = {}) {
+    // derive answers from user messages only
+    const messagesSnapshot =
+      readJSON(FB_KEY, { messages: [], currentInput: "" }).messages || [];
+    const answers = messagesSnapshot
+      .filter((m) => m.role === "user")
+      .map((m) => String(m.text || ""));
+
+    // optional padding (if server expects fixed length)
+    while (answers.length < padTo) answers.push("");
+
+    const body = { requestId, answers }; // NOTE: server uses camelCase requestId
+
+    setData((prev) => ({ ...prev, inFlight: true }));
+    try {
+      const res = await fetch(`${API_BASE}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Feedback server error ${res.status}: ${txt}`);
+      }
+      const json = await res.json();
+
+      // success => mark done, clear draft
+      setFeedbackDoneFlag(true);
+      persistFeedbackDraft([], "", false);
+      setData((prev) => ({
+        ...prev,
+        messages: [],
+        currentInput: "",
+        open: false,
+        inFlight: false,
+        lastSavedAt: new Date().toISOString(),
+        feedbackDone: true,
+        feedbackResponseMeta: json,
+      }));
+      return { ok: true, json };
+    } catch (err) {
+      console.error("submitFeedback failed", err);
+      // keep draft so user can retry
+      setData((prev) => ({ ...prev, inFlight: false }));
+      return { ok: false, error: err };
+    }
+  }
+
   // Expose these in value object (add to the 'value' returned by provider)
 
   const value = {
@@ -625,6 +762,13 @@ export function DataProvider({ children }) {
     downloadGeneration,
     updateHistoryItem,
     clearAllHistory,
+
+    openFeedback,
+    closeFeedback,
+    addFeedbackMessage,
+    setFeedbackInput,
+    submitFeedback,
+    markFeedbackDoneOnClient,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

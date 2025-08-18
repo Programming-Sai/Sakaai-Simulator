@@ -5,6 +5,7 @@ import styles from "./page.module.css";
 import { useData } from "@/context/DataContext";
 import { QuizTypeSelector } from "@/components/QiuzTypeSelector/QuizTypeSelector";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Home() {
   const { generateQuiz, isLoading, requestId, data, setSetupInstructions } =
@@ -70,6 +71,7 @@ export default function Home() {
 
   return (
     <div className={styles.setupContainer}>
+      <Link href="/feedback">FeedBack From Home</Link>
       <form className={styles.params} onSubmit={onSubmit}>
         <input
           title="Topic, eg. Computer Architecture"
