@@ -78,7 +78,7 @@ export default function Home() {
 
   return (
     <div className={styles.setupContainer}>
-      <Link href="/feedback">FeedBack From Home</Link>
+      {/* <Link href="/feedback">FeedBack From Home</Link> */}
       <form className={styles.params} onSubmit={onSubmit}>
         <input
           title="Topic, eg. Computer Architecture"

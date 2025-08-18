@@ -1,5 +1,6 @@
 // contexts/DataContext.js
 "use client";
+import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 const API_BASE = "https://sakaai-simulator.onrender.com"; // adjust if needed
@@ -71,6 +72,8 @@ function dedupeHistoryArray(arr) {
 }
 
 export function DataProvider({ children }) {
+  const router = useRouter();
+
   // data store
   const [data, setData] = useState({
     quizzes: {},
@@ -230,6 +233,19 @@ export function DataProvider({ children }) {
       console.warn("DataProvider init error", e);
     }
   }, []);
+
+  useEffect(() => {
+    const alreadyDone = readJSON(FB_DONE_KEY, false);
+
+    if (!alreadyDone && data?.usage?.used >= 2) {
+      // Give them ~2 seconds to finish what they were doing
+      const timer = setTimeout(() => {
+        router.push("/feedback");
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [data?.usage?.used, router]);
 
   // helper: merge new quiz response into data
   function pushResponseToData(responseJson, formPayload, generationIdParam) {

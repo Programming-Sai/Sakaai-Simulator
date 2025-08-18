@@ -123,7 +123,7 @@ export default function FeedbackComponent({ width, right, smallScreenOffset }) {
     } else {
       // Last answer submitted — show submit flow
       (async () => {
-        await botSay("Thanks — submitting your feedback now.");
+        await botSay("Thanks — submitting your feedback.");
         await sleep(3000);
         await handleSubmitAuto();
       })();
