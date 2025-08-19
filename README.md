@@ -16,9 +16,24 @@
   </a>
 </p>
 
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black?style=for-the-badge&logo=vercel)](https://sakaai-simulator.vercel.app)
+[![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+![Active Development](https://img.shields.io/badge/status-active--development-blue?style=for-the-badge&logo=github)
+![Beta](https://img.shields.io/badge/status-beta--testing-yellow?style=for-the-badge&logo=flask)
+[![Stars](https://img.shields.io/github/stars/Programming-Sai/Sakaai-Simulator?style=for-the-badge&logo=github)](https://github.com/Programming-Sai/Sakaai-Simulator/stargazers)
+
 # Sakaai Simulator
 
 An AI-powered quiz generator & evaluator inspired by Sakai’s quiz workflow.
+
+| Light Theme                                                        | Dark Theme                                                       |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| ![Light Home](./demo/home-light.jpeg)                              | ![Dark Home](./demo/home-dark.jpeg)                              |
+| ![Light Loading](./demo/loading-light.jpeg)                        | ![Dark Loading](./demo/loading-dark.jpeg)                        |
+| ![Light Quiz](./demo/quiz-light.jpeg)                              | ![Dark Quiz](./demo/quiz-dark.jpeg)                              |
+| ![Light Quiz (Solved Progress)](./demo/quiz-solved-light.jpeg)     | ![Dark Quiz (Solved Progress)](./demo/quiz-solved-dark.jpeg)     |
+| ![Light Results](./demo/results-light.jpeg)                        | ![Dark Results](./demo/results-dark.jpeg)                        |
+| ![Light Results (Break Down)](./demo/results-breakdown-light.jpeg) | ![Dark Results (Break Down)](./demo/results-breakdown-dark.jpeg) |
 
 **Sakaai Simulator** lets you:
 
