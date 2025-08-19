@@ -8,6 +8,8 @@ load_dotenv()
 def get_config():
 
     max_file_size = int(os.getenv("MAX_FILE_SIZE_MB", "3"))
+    reset_hour = int(os.getenv("RESET_HOUR", "0"))
+    reset_minute = int(os.getenv("RESET_MINUTE", "10"))
     max_requests_per_day = int(os.getenv("MAX_REQUEST_PER_DAILY", "5/day").split("/")[0])
     max_number_of_questions_per_generation = int(os.getenv("MAX_NUM_QUESTIONS", "30"))
 
@@ -22,6 +24,8 @@ def get_config():
 
 
     return {
+        "reset_hour":reset_hour, 
+        "reset_minute":reset_minute,
         "max_file_size":max_file_size,
         "max_number_of_questions_per_generation":max_number_of_questions_per_generation,
         "max_requests_per_day":max_requests_per_day, 

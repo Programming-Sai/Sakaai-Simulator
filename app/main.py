@@ -9,7 +9,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.errors import RateLimitExceeded
 # from slowapi.util import get_remote_address, get_retry_after
 from app.utils.logger import log_event
-from app.utils.rate_limiter import limiter
+from app.utils.rate_limiter import get_seconds_until_reset, limiter, format_seconds_to_human
 
 APP_NAME=os.getenv("APP_NAME")
 # Define limiter (used ONLY for routes that explicitly decorate with @limiter.limit)
@@ -24,9 +24,7 @@ app = FastAPI(
 # Global rate limit error handler (APPLIES TO ENTIRE APP)
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    now = datetime.now(timezone.utc)
-    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    seconds_until_midnight = int((tomorrow - now).total_seconds())
+    seconds_until_reset = get_seconds_until_reset()
 
     try:
         form = await request.form()
@@ -40,19 +38,20 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
         client_ip=request.client.host,
         path=request.url.path,
         method=request.method,
-        retry_after=seconds_until_midnight,
+        retry_after=seconds_until_reset,
         user_agent=request.headers.get("user-agent", "unknown"),
         rate_limit=os.getenv("MAX_REQUEST_PER_DAILY", "5/day")
     )
     
     return JSONResponse(
         status_code=429,
-        content={
-            "detail": "Rate limit exceeded. Please try again later.",
-            "retry_after": seconds_until_midnight
+         content={
+            "detail": f"Rate limit exceeded. Try again in {format_seconds_to_human(seconds_until_reset)}.",
+            "retry_after_seconds": seconds_until_reset,
+            "reset_time": f"{os.getenv('RESET_HOUR').zfill(2)}:{os.getenv('RESET_MINUTE').zfill(2)} UTC"
         },
         headers={
-            "Retry-After": str(seconds_until_midnight)
+            "Retry-After": str(seconds_until_reset)
         }
     )
 
