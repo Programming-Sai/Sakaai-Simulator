@@ -80,50 +80,120 @@ function dedupeHistoryArray(arr) {
 function todayDateStr() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
 }
+// ---------- START: window-anchor based usage helpers ----------
 
+// Read config from localStorage (fallbacks)
+function readConfigFromStorage() {
+  try {
+    const cfg = readJSON(CONFIG_KEY, null);
+    return (
+      cfg || {
+        reset_hour: 0,
+        reset_minute: 0,
+        max_requests_per_day: MAX_QUIZZES,
+      }
+    );
+  } catch (e) {
+    return {
+      reset_hour: 0,
+      reset_minute: 0,
+      max_requests_per_day: MAX_QUIZZES,
+    };
+  }
+}
+
+/**
+ * Compute the ISO anchor string for the current window based on configured reset time.
+ * Returns something stable for a window, e.g. "2025-08-19T16:20:00.000Z".
+ */
+function currentWindowAnchorIso() {
+  const cfg = readConfigFromStorage();
+  const now = new Date();
+
+  // Use UTC/GMT anchor
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth(); // 0-based
+  const day = now.getUTCDate();
+  const hour = Number(cfg?.reset_hour ?? 0) || 0;
+  const minute = Number(cfg?.reset_minute ?? 0) || 0;
+
+  // build today's reset anchor UTC
+  let reset = new Date(Date.UTC(year, month, day, hour, minute, 0, 0));
+
+  // if current time is strictly before today's reset, anchor belongs to yesterday
+  if (now.getTime() < reset.getTime()) {
+    // move to yesterday's anchor
+    const yesterday = new Date(reset.getTime() - 24 * 3600 * 1000);
+    reset = new Date(
+      Date.UTC(
+        yesterday.getUTCFullYear(),
+        yesterday.getUTCMonth(),
+        yesterday.getUTCDate(),
+        hour,
+        minute,
+        0,
+        0
+      )
+    );
+  }
+
+  return reset.toISOString(); // canonical anchor id
+}
+
+/**
+ * Normalize stored usage according to window anchor.
+ * storedUsage: object from localStorage (may be null)
+ * defaultLimit: fallback limit if missing
+ *
+ * Schema persisted at USAGE_KEY:
+ * { used: number, limit: number, lastReset: string (anchor ISO) }
+ */
 function normalizeStoredUsage(storedUsage, defaultLimit = MAX_QUIZZES) {
-  const today = todayDateStr();
+  const anchorIso = currentWindowAnchorIso(); // authoritative window id for client
   const raw =
     storedUsage && typeof storedUsage === "object" ? { ...storedUsage } : null;
-  const u = raw || { used: 0, limit: defaultLimit, lastReset: today };
-  // ensure numeric and default
+
+  // base object
+  const u = raw || { used: 0, limit: defaultLimit, lastReset: anchorIso };
+
+  // make sure limit numeric
   u.limit = Number(u.limit || defaultLimit);
-  if (!u.lastReset || u.lastReset !== today) {
-    // new day -> reset usage counter for UX
+
+  // if lastReset differs from current window anchor -> new window -> reset used
+  if (!u.lastReset || String(u.lastReset) !== anchorIso) {
     u.used = 0;
-    u.lastReset = today;
+    u.lastReset = anchorIso;
   } else {
     u.used = Number(u.used || 0);
   }
+
   return u;
 }
 
 /**
- * Atomic read-modify-write helper.
- * `modifier` is a function that receives the normalized usage object and
- * returns a new usage object (or mutates it) which will then be written.
- *
- * Returns the written usage object.
+ * Atomic read-modify-write helper for usage.
+ * modifier receives a normalized usage object and should return the new usage object.
+ * We persist the final normalized object to localStorage.
  */
 function atomicModifyUsage(modifier) {
   try {
     const stored = readJSON(USAGE_KEY, null);
-    const normalized = normalizeStoredUsage(
-      stored,
-      /* defaultLimit */ MAX_QUIZZES
-    );
+    const normalized = normalizeStoredUsage(stored, MAX_QUIZZES);
     const next =
       modifier && typeof modifier === "function"
         ? modifier({ ...normalized })
         : normalized;
-    // ensure it's normalized before writing
+    // normalize again (ensures lastReset anchored)
     const final = normalizeStoredUsage(next, next?.limit ?? MAX_QUIZZES);
     writeJSON(USAGE_KEY, final);
     return final;
   } catch (e) {
     console.warn("atomicModifyUsage failed", e);
-    // fallback: return a safe default
-    const fallback = { used: 0, limit: MAX_QUIZZES, lastReset: todayDateStr() };
+    const fallback = {
+      used: 0,
+      limit: MAX_QUIZZES,
+      lastReset: currentWindowAnchorIso(),
+    };
     try {
       writeJSON(USAGE_KEY, fallback);
     } catch (_) {}
@@ -131,9 +201,7 @@ function atomicModifyUsage(modifier) {
   }
 }
 
-/**
- * Convenience helpers:
- */
+/** Convenience wrappers (use atomicModifyUsage) */
 function getUsageFromStorage() {
   const stored = readJSON(USAGE_KEY, null);
   return normalizeStoredUsage(stored, MAX_QUIZZES);
@@ -142,16 +210,62 @@ function incrementUsageBy(n = 1) {
   return atomicModifyUsage((u) => ({
     ...u,
     used: (Number(u.used) || 0) + Number(n),
-    lastReset: todayDateStr(),
+    lastReset: currentWindowAnchorIso(),
   }));
 }
 function decrementUsageBy(n = 1) {
   return atomicModifyUsage((u) => ({
     ...u,
     used: Math.max(0, (Number(u.used) || 0) - Number(n)),
-    lastReset: u.lastReset || todayDateStr(),
+    lastReset: u.lastReset || currentWindowAnchorIso(),
   }));
 }
+
+/**
+ * Returns seconds until the next configured reset time (GMT/UTC).
+ * cfg: { reset_hour: number|string, reset_minute: number|string } (may be missing)
+ * nowOverride: optional Date or timestamp (ms) for testing
+ *
+ * Examples:
+ *  secondsUntilNextResetFromConfig({reset_hour: 0, reset_minute: 5}) -> seconds until next 00:05 UTC
+ */
+function secondsUntilNextResetFromConfig(cfg = {}, nowOverride) {
+  // Use provided "now" for determinism in tests, otherwise use current time.
+  const now = nowOverride ? new Date(nowOverride) : new Date();
+
+  // defensively parse config values
+  const rawH =
+    cfg && typeof cfg.reset_hour !== "undefined" ? Number(cfg.reset_hour) : NaN;
+  const rawM =
+    cfg && typeof cfg.reset_minute !== "undefined"
+      ? Number(cfg.reset_minute)
+      : NaN;
+
+  const h = Number.isFinite(rawH) ? Math.floor(rawH) : 0;
+  const m = Number.isFinite(rawM) ? Math.floor(rawM) : 0;
+
+  // clamp to valid ranges
+  const hour = Math.max(0, Math.min(23, h));
+  const minute = Math.max(0, Math.min(59, m));
+
+  // Use UTC date components
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth(); // 0-based
+  const day = now.getUTCDate();
+
+  // build today's reset moment in UTC (ms since epoch)
+  let resetMs = Date.UTC(year, month, day, hour, minute, 0, 0);
+
+  // if now is already at/after today's reset, target tomorrow's reset
+  if (now.getTime() >= resetMs) {
+    // Date.UTC will handle day overflow correctly
+    resetMs = Date.UTC(year, month, day + 1, hour, minute, 0, 0);
+  }
+
+  const diffSec = Math.floor((resetMs - now.getTime()) / 1000);
+  return Math.max(0, diffSec);
+}
+
 // ---------- END: usage / concurrency helpers ----------
 
 export function DataProvider({ children }) {
@@ -163,7 +277,7 @@ export function DataProvider({ children }) {
     answers: {},
     feedback: {},
     history: [],
-    usage: { used: 0, limit: MAX_QUIZZES, lastReset: todayDateStr() },
+    usage: { used: 0, limit: MAX_QUIZZES, lastReset: currentWindowAnchorIso() },
     setupInstructions: null,
     results: {},
     lastRequestMeta: null,
@@ -177,6 +291,8 @@ export function DataProvider({ children }) {
     lastSavedAt: null,
 
     config: {
+      reset_hour: 0,
+      reset_minute: 5,
       max_file_size: 5, // MB default
       max_number_of_questions_per_generation: 30,
       max_requests_per_day: MAX_QUIZZES,
@@ -214,8 +330,14 @@ export function DataProvider({ children }) {
       const cfg = json?.config || null;
 
       if (cfg) {
-        // Normalize: ensure numeric types, arrays
+        // Normalize: ensure numeric types, arrays, and reset time (GMT)
         const normalized = {
+          reset_hour: Number.isFinite(Number(cfg.reset_hour))
+            ? Number(cfg.reset_hour)
+            : Number(cfg.reset_hour || 0),
+          reset_minute: Number.isFinite(Number(cfg.reset_minute))
+            ? Number(cfg.reset_minute)
+            : Number(cfg.reset_minute || 0),
           max_file_size: Number(cfg.max_file_size) || 5,
           max_number_of_questions_per_generation:
             Number(cfg.max_number_of_questions_per_generation) || 30,
@@ -228,8 +350,7 @@ export function DataProvider({ children }) {
         // persist to localStorage
         writeJSON(CONFIG_KEY, normalized);
 
-        // Atomically update persisted usage.limit to match the server-configured daily limit.
-        // We do not reset 'used' here — atomicModifyUsage will normalize lastReset if needed.
+        // Atomically sync usage.limit to server-provided limit
         try {
           atomicModifyUsage((u) => ({
             ...u,
@@ -239,13 +360,16 @@ export function DataProvider({ children }) {
           console.warn("failed to sync usage limit to config", e);
         }
 
-        // read the freshly persisted usage (normalized) and update in-memory state
+        // update state with normalized config and refreshed usage
         const freshUsage = getUsageFromStorage();
-        setData((prev) => ({
-          ...prev,
-          config: normalized,
-          usage: freshUsage,
-        }));
+        setData((prev) => {
+          const nextUsage = freshUsage || prev.usage;
+          return {
+            ...prev,
+            config: normalized,
+            usage: nextUsage,
+          };
+        });
 
         return normalized;
       }
@@ -368,6 +492,39 @@ export function DataProvider({ children }) {
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  // schedule client-side normalization at next configured reset (GMT)
+  useEffect(() => {
+    let timer = null;
+    function schedule() {
+      try {
+        const cfg = data?.config || {};
+        // compute seconds to next reset (helper re-used from earlier suggestions)
+        const seconds = secondsUntilNextResetFromConfig(cfg); // implement helper as earlier recommended
+        if (!seconds || seconds <= 0) return;
+        timer = setTimeout(() => {
+          const normalizedUsage = normalizeStoredUsage(
+            readJSON(USAGE_KEY, null),
+            data?.config?.max_requests_per_day || MAX_QUIZZES
+          );
+          writeJSON(USAGE_KEY, normalizedUsage);
+          setData((prev) => ({ ...prev, usage: normalizedUsage }));
+          // reschedule for the next day
+          schedule();
+        }, seconds * 1000 + 50);
+      } catch (e) {
+        // ignore
+      }
+    }
+    schedule();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [
+    data?.config?.reset_hour,
+    data?.config?.reset_minute,
+    data?.usage?.lastReset,
+  ]);
 
   // helper: merge new quiz response into data
   function pushResponseToData(responseJson, formPayload, generationIdParam) {
@@ -604,13 +761,19 @@ export function DataProvider({ children }) {
       usage: {
         used: 0,
         limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
-        lastReset: todayDateStr(),
+        lastReset: currentWindowAnchorIso(),
       },
       setupInstructions: null,
       results: {},
       lastRequestMeta: null,
     });
     try {
+      const freshUsage = {
+        used: 0,
+        limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
+        lastReset: currentWindowAnchorIso(),
+      };
+      writeJSON(USAGE_KEY, freshUsage);
       localStorage.removeItem(REQUEST_ID_KEY);
     } catch (e) {}
     const freshId = makeRequestId();
@@ -843,7 +1006,7 @@ export function DataProvider({ children }) {
         writeJSON(USAGE_KEY, {
           used: 0,
           limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
-          lastReset: todayDateStr(),
+          lastReset: currentWindowAnchorIso(),
         });
       } catch (e) {
         console.warn("clearAllHistory persist failed", e);
