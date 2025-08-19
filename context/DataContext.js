@@ -2,6 +2,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { useToast } from "./ToastContext";
 
 const API_BASE = "https://sakaai-simulator.onrender.com"; // adjust if needed
 const MAX_QUIZZES = 10;
@@ -71,16 +72,98 @@ function dedupeHistoryArray(arr) {
   return out;
 }
 
+// ---------- START: usage / concurrency helpers (paste after writeJSON) ----------
+/**
+ * Usage object schema stored at USAGE_KEY:
+ * { used: number, limit: number, lastReset: "YYYY-MM-DD" }
+ */
+function todayDateStr() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+}
+
+function normalizeStoredUsage(storedUsage, defaultLimit = MAX_QUIZZES) {
+  const today = todayDateStr();
+  const raw =
+    storedUsage && typeof storedUsage === "object" ? { ...storedUsage } : null;
+  const u = raw || { used: 0, limit: defaultLimit, lastReset: today };
+  // ensure numeric and default
+  u.limit = Number(u.limit || defaultLimit);
+  if (!u.lastReset || u.lastReset !== today) {
+    // new day -> reset usage counter for UX
+    u.used = 0;
+    u.lastReset = today;
+  } else {
+    u.used = Number(u.used || 0);
+  }
+  return u;
+}
+
+/**
+ * Atomic read-modify-write helper.
+ * `modifier` is a function that receives the normalized usage object and
+ * returns a new usage object (or mutates it) which will then be written.
+ *
+ * Returns the written usage object.
+ */
+function atomicModifyUsage(modifier) {
+  try {
+    const stored = readJSON(USAGE_KEY, null);
+    const normalized = normalizeStoredUsage(
+      stored,
+      /* defaultLimit */ MAX_QUIZZES
+    );
+    const next =
+      modifier && typeof modifier === "function"
+        ? modifier({ ...normalized })
+        : normalized;
+    // ensure it's normalized before writing
+    const final = normalizeStoredUsage(next, next?.limit ?? MAX_QUIZZES);
+    writeJSON(USAGE_KEY, final);
+    return final;
+  } catch (e) {
+    console.warn("atomicModifyUsage failed", e);
+    // fallback: return a safe default
+    const fallback = { used: 0, limit: MAX_QUIZZES, lastReset: todayDateStr() };
+    try {
+      writeJSON(USAGE_KEY, fallback);
+    } catch (_) {}
+    return fallback;
+  }
+}
+
+/**
+ * Convenience helpers:
+ */
+function getUsageFromStorage() {
+  const stored = readJSON(USAGE_KEY, null);
+  return normalizeStoredUsage(stored, MAX_QUIZZES);
+}
+function incrementUsageBy(n = 1) {
+  return atomicModifyUsage((u) => ({
+    ...u,
+    used: (Number(u.used) || 0) + Number(n),
+    lastReset: todayDateStr(),
+  }));
+}
+function decrementUsageBy(n = 1) {
+  return atomicModifyUsage((u) => ({
+    ...u,
+    used: Math.max(0, (Number(u.used) || 0) - Number(n)),
+    lastReset: u.lastReset || todayDateStr(),
+  }));
+}
+// ---------- END: usage / concurrency helpers ----------
+
 export function DataProvider({ children }) {
   const router = useRouter();
-
+  const { add: toast } = useToast();
   // data store
   const [data, setData] = useState({
     quizzes: {},
     answers: {},
     feedback: {},
     history: [],
-    usage: { used: 0, limit: MAX_QUIZZES },
+    usage: { used: 0, limit: MAX_QUIZZES, lastReset: todayDateStr() },
     setupInstructions: null,
     results: {},
     lastRequestMeta: null,
@@ -145,19 +228,24 @@ export function DataProvider({ children }) {
         // persist to localStorage
         writeJSON(CONFIG_KEY, normalized);
 
-        // update state; also update usage.limit if it's not present or we want to keep in sync
-        setData((prev) => {
-          const nextUsage = { ...(prev.usage || {}) };
-          // only override limit if the stored limit appears missing or already default
-          if (!nextUsage?.limit || nextUsage.limit === MAX_QUIZZES) {
-            nextUsage.limit = normalized.max_requests_per_day;
-          }
-          return {
-            ...prev,
-            config: normalized,
-            usage: nextUsage,
-          };
-        });
+        // Atomically update persisted usage.limit to match the server-configured daily limit.
+        // We do not reset 'used' here — atomicModifyUsage will normalize lastReset if needed.
+        try {
+          atomicModifyUsage((u) => ({
+            ...u,
+            limit: Number(normalized.max_requests_per_day) || u.limit,
+          }));
+        } catch (e) {
+          console.warn("failed to sync usage limit to config", e);
+        }
+
+        // read the freshly persisted usage (normalized) and update in-memory state
+        const freshUsage = getUsageFromStorage();
+        setData((prev) => ({
+          ...prev,
+          config: normalized,
+          usage: freshUsage,
+        }));
 
         return normalized;
       }
@@ -191,7 +279,7 @@ export function DataProvider({ children }) {
   useEffect(() => {
     try {
       const storedHistory = readJSON(HISTORY_KEY, []);
-      const storedUsage = readJSON(USAGE_KEY, null);
+      // const storedUsage = readJSON(USAGE_KEY, null);
       const storedQuizzesMap = readJSON(QUIZZES_KEY, {});
       const storedAnswers = readJSON(ANSWERS_KEY, {});
       const storedFeedback = readJSON(FB_KEY, {
@@ -205,6 +293,14 @@ export function DataProvider({ children }) {
       // dedupe storedHistory right away
       const dedupedHistory = dedupeHistoryArray(storedHistory);
 
+      // normalize stored usage (handles daily reset)
+      const normalizedUsage = normalizeStoredUsage(
+        readJSON(USAGE_KEY, null),
+        storedConfig?.max_requests_per_day || MAX_QUIZZES
+      );
+      // persist back normalized (ensures lastReset exists)
+      writeJSON(USAGE_KEY, normalizedUsage);
+
       // if dedupe removed duplicates, persist back cleaned history
       if (dedupedHistory.length !== (storedHistory || []).length) {
         writeJSON(HISTORY_KEY, dedupedHistory);
@@ -214,7 +310,7 @@ export function DataProvider({ children }) {
         ...prev,
         answers: storedAnswers || prev.answers,
         history: dedupedHistory || prev.history,
-        usage: storedUsage ||
+        usage: normalizedUsage ||
           prev.usage || {
             used: 0,
             limit: storedConfig?.max_requests_per_day || MAX_QUIZZES,
@@ -247,6 +343,32 @@ export function DataProvider({ children }) {
     }
   }, [data?.usage?.used, router]);
 
+  useEffect(() => {
+    function onStorage(e) {
+      if (!e.key) return;
+      if (e.key === USAGE_KEY) {
+        setData((prev) => ({
+          ...prev,
+          usage: normalizeStoredUsage(
+            readJSON(USAGE_KEY, null),
+            prev?.config?.max_requests_per_day || MAX_QUIZZES
+          ),
+        }));
+      }
+      if (e.key === HISTORY_KEY) {
+        setData((prev) => ({
+          ...prev,
+          history: dedupeHistoryArray(readJSON(HISTORY_KEY, [])),
+        }));
+      }
+      if (e.key === QUIZZES_KEY) {
+        setData((prev) => ({ ...prev, quizzes: readJSON(QUIZZES_KEY, {}) }));
+      }
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   // helper: merge new quiz response into data
   function pushResponseToData(responseJson, formPayload, generationIdParam) {
     const rid = formPayload.request_id || requestId || null; // user id
@@ -266,76 +388,94 @@ export function DataProvider({ children }) {
       model_used: responseJson.model_used || null,
     };
 
-    setData((prev) => {
-      // If results already has genId, we may still want to refresh it but avoid double-history
-      const alreadyInResults = !!(prev.results && prev.results[genId]);
-      const alreadyInHistory = (prev.history || []).some(
+    // Build the results/meta object we will merge into state
+    const incomingResultEntry = {
+      meta: {
+        model_used: responseJson.model_used,
+        inference_time: responseJson.inference_time,
+        question_count: responseJson.question_count,
+        token_usage: responseJson.token_usage,
+        attempt_number: responseJson.attempt_number,
+      },
+      quizzes,
+    };
+
+    // ---- Persist to localStorage first (decide whether to increment usage) ----
+    let persistedUsage = null;
+    try {
+      // read current persisted maps
+      const quizzesMap = readJSON(QUIZZES_KEY, {});
+      const storedHistory = readJSON(HISTORY_KEY, []);
+
+      const alreadyInQuizzesMap = !!quizzesMap[genId];
+      const alreadyInStoredHistory = storedHistory.some(
         (h) => h.generationId === genId
       );
+
+      // persist quizzes if missing
+      if (!alreadyInQuizzesMap) {
+        quizzesMap[genId] = quizzes;
+        writeJSON(QUIZZES_KEY, quizzesMap);
+      }
+
+      // persist history if missing
+      if (!alreadyInStoredHistory) {
+        const newStoredHistory = [historyItem, ...storedHistory].slice(0, 200);
+        writeJSON(HISTORY_KEY, dedupeHistoryArray(newStoredHistory));
+      }
+
+      // increment usage *only if* this generation is new (not stored already)
+      if (!alreadyInQuizzesMap && !alreadyInStoredHistory) {
+        // atomic helper will read->normalize->write and return the new usage object
+        persistedUsage = incrementUsageBy(1);
+      } else {
+        // read-normalize current usage and persist (in case normalization resets day)
+        persistedUsage = getUsageFromStorage();
+        writeJSON(USAGE_KEY, persistedUsage);
+      }
+    } catch (e) {
+      console.warn("persist pushResponseToData failed", e);
+      // fallback: at least attempt to read whatever is in storage now
+      try {
+        persistedUsage = getUsageFromStorage();
+      } catch (_) {
+        persistedUsage = {
+          used: 0,
+          limit: MAX_QUIZZES,
+          lastReset: new Date().toISOString().slice(0, 10),
+        };
+      }
+    }
+
+    // ---- Now update in-memory React state using persistedUsage (authoritative cache) ----
+    setData((prev) => {
+      const alreadyInResults = !!(prev.results && prev.results[genId]);
 
       // Build next results map (idempotent)
       const nextResults = {
         ...(prev.results || {}),
-        [genId]: {
-          meta: {
-            model_used: responseJson.model_used,
-            inference_time: responseJson.inference_time,
-            question_count: responseJson.question_count,
-            token_usage: responseJson.token_usage,
-            attempt_number: responseJson.attempt_number,
-          },
-          quizzes,
-        },
+        [genId]: incomingResultEntry,
       };
 
-      // Only add to history if not already present
-      const nextHistory = alreadyInHistory
+      // Only add to history if not already present in-memory
+      const alreadyInMemoryHistory = (prev.history || []).some(
+        (h) => h.generationId === genId
+      );
+      const nextHistory = alreadyInMemoryHistory
         ? prev.history
         : [historyItem, ...(prev.history || [])].slice(0, 200);
 
-      // Only increment usage if this is a new generation
-      const prevUsed = prev.usage?.used || 0;
-      const prevLimit =
-        typeof prev.usage?.limit === "number" ? prev.usage.limit : MAX_QUIZZES;
-      const nextUsage = alreadyInResults
-        ? { ...prev.usage }
-        : { ...prev.usage, used: prevUsed + 1 };
-
-      // persist only new pieces to localStorage
-      try {
-        const quizzesMap = readJSON(QUIZZES_KEY, {});
-        if (!quizzesMap[genId]) {
-          quizzesMap[genId] = quizzes;
-          writeJSON(QUIZZES_KEY, quizzesMap);
-        }
-
-        const storedHistory = readJSON(HISTORY_KEY, []);
-        const alreadyStored = storedHistory.some(
-          (h) => h.generationId === genId
-        );
-        if (!alreadyStored) {
-          const newStoredHistory = [historyItem, ...storedHistory].slice(
-            0,
-            200
-          );
-          writeJSON(HISTORY_KEY, dedupeHistoryArray(newStoredHistory));
-        }
-
-        // always write usage (it may or may not have changed)
-        writeJSON(USAGE_KEY, nextUsage);
-      } catch (e) {
-        console.warn("persist pushResponseToData failed", e);
-      }
-
+      // Merge quizzes into in-memory map
       const nextQuizzesMap = { ...(prev.quizzes || {}) };
       nextQuizzesMap[genId] = quizzes;
 
       return {
         ...prev,
-        quizzes: nextQuizzesMap, // <--- add this
+        quizzes: nextQuizzesMap,
         results: nextResults,
         history: nextHistory,
-        usage: nextUsage,
+        // use the usage object we persisted above (guarantees UI reflects storage)
+        usage: persistedUsage || getUsageFromStorage(),
         lastRequestMeta: nextResults[genId].meta,
         setupInstructions: null,
       };
@@ -363,16 +503,17 @@ export function DataProvider({ children }) {
     const generationId = makeGenId();
 
     // Check usage remaining (per-request model)
-    const currUsage = data?.usage || {
-      used: 0,
-      limit: data?.max_requests_per_day || MAX_QUIZZES,
-    };
+    const storedUsage = getUsageFromStorage();
     const effectiveLimit =
-      data?.config?.max_requests_per_day ?? currUsage.limit ?? MAX_QUIZZES;
-    const remaining = effectiveLimit - (currUsage.used ?? 0);
-    if (remaining <= 0) {
-      return { ok: false, error: new Error("Usage limit reached") };
-    }
+      data?.config?.max_requests_per_day ?? storedUsage.limit ?? MAX_QUIZZES;
+    const remaining = effectiveLimit - (storedUsage.used ?? 0);
+    // if (remaining <= 0) {
+    //   return {
+    //     ok: false,
+    //     error: new Error("Usage limit reached"),
+    //     status: 429,
+    //   };
+    // }
 
     // Build FormData (same as your implementation)...
     const fd = new FormData();
@@ -406,8 +547,24 @@ export function DataProvider({ children }) {
         body: fd,
       });
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`Server error ${res.status}: ${text}`);
+        const json = await res.json();
+        const retryAfter = json?.retry_after;
+        const seconds = parseInt(retryAfter, 10);
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const formatted = `${hours}h ${minutes}m`;
+        toast(
+          "error",
+          `Server error ${res.status}: ${json?.detail} in ${formatted}`,
+          5500
+        );
+        return {
+          ok: false,
+          error: `Server error ${res.status}: ${json}`,
+          status: res.status,
+        };
+
+        // throw new Error(`Server error ${res.status}: ${text}`);
       }
       const json = await res.json();
 
@@ -425,7 +582,8 @@ export function DataProvider({ children }) {
       return { ok: true, json, requestId: rid, generationId };
     } catch (err) {
       console.error("generateQuiz (formdata) error", err);
-      return { ok: false, error: err };
+      toast("error", err, 5500);
+      return { ok: false, error: err, status: res.status };
     } finally {
       setIsLoading(false);
     }
@@ -443,7 +601,11 @@ export function DataProvider({ children }) {
       answers: {},
       feedback: {},
       history: [],
-      usage: { used: 0, limit: data?.max_requests_per_day || MAX_QUIZZES },
+      usage: {
+        used: 0,
+        limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
+        lastReset: todayDateStr(),
+      },
       setupInstructions: null,
       results: {},
       lastRequestMeta: null,
@@ -502,7 +664,6 @@ export function DataProvider({ children }) {
     });
   }
 
-  // Delete a single generation (history item + quizzes + answers + results)
   function deleteGeneration(genId) {
     setData((prev) => {
       const nextResults = { ...(prev.results || {}) };
@@ -517,7 +678,7 @@ export function DataProvider({ children }) {
       delete nextQuizzes[genId];
       delete nextAnswers[genId];
 
-      // persist changes to localStorage
+      // persist changes to localStorage (but DO NOT modify usage here)
       try {
         const quizzesMap = readJSON(QUIZZES_KEY, {});
         delete quizzesMap[genId];
@@ -532,25 +693,23 @@ export function DataProvider({ children }) {
         delete answersMap[genId];
         writeJSON(ANSWERS_KEY, answersMap);
 
-        const prevUsed = prev.usage?.used || 0;
-        const nextUsage = {
-          ...(prev.usage || {}),
-          used: Math.max(0, prevUsed - 1),
-        };
-        writeJSON(USAGE_KEY, nextUsage);
-
-        return {
-          ...prev,
-          results: nextResults,
-          quizzes: nextQuizzes,
-          answers: nextAnswers,
-          history: nextHistory,
-          usage: nextUsage,
-        };
+        // NOTE: we intentionally DO NOT change USAGE_KEY here.
+        // Usage is authoritative from the server and only updated when
+        // a server generation succeeds (pushResponseToData).
       } catch (e) {
         console.warn("deleteGeneration failed", e);
         return prev;
       }
+
+      return {
+        ...prev,
+        results: nextResults,
+        quizzes: nextQuizzes,
+        answers: nextAnswers,
+        history: nextHistory,
+        // keep usage unchanged in-memory as well (reflect stored usage)
+        usage: prev.usage,
+      };
     });
   }
 
@@ -566,7 +725,7 @@ export function DataProvider({ children }) {
 
       const newHistoryItem = {
         generationId: newGenId,
-        requestId: prev.requestId,
+        requestId, // keep same requestId (state var)
         topic: `Copy of ${
           prev.history.find((h) => h.generationId === genId)?.topic || "quiz"
         }`,
@@ -591,12 +750,8 @@ export function DataProvider({ children }) {
         0,
         200
       );
-      const nextUsage = {
-        ...(prev.usage || {}),
-        used: (prev.usage?.used || 0) + 1,
-      };
 
-      // persist
+      // persist local copies (but DO NOT touch usage)
       try {
         const quizzesMap = readJSON(QUIZZES_KEY, {});
         quizzesMap[newGenId] = sourceQuizzes;
@@ -608,7 +763,7 @@ export function DataProvider({ children }) {
           dedupeHistoryArray([newHistoryItem, ...storedHistory]).slice(0, 200)
         );
 
-        writeJSON(USAGE_KEY, nextUsage);
+        // DO NOT change USAGE_KEY: duplication is local only
       } catch (e) {
         console.warn("duplicateGeneration persist failed", e);
       }
@@ -618,7 +773,8 @@ export function DataProvider({ children }) {
         quizzes: nextQuizzes,
         results: nextResults,
         history: nextHistory,
-        usage: nextUsage,
+        // keep usage unchanged
+        usage: prev.usage,
       };
     });
   }
@@ -686,7 +842,8 @@ export function DataProvider({ children }) {
         writeJSON(ANSWERS_KEY, {});
         writeJSON(USAGE_KEY, {
           used: 0,
-          limit: data?.max_requests_per_day || MAX_QUIZZES,
+          limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
+          lastReset: todayDateStr(),
         });
       } catch (e) {
         console.warn("clearAllHistory persist failed", e);
@@ -697,7 +854,10 @@ export function DataProvider({ children }) {
         quizzes: {},
         answers: {},
         results: {},
-        usage: { used: 0, limit: data?.max_requests_per_day || MAX_QUIZZES },
+        usage: {
+          used: 0,
+          limit: data?.config?.max_requests_per_day || MAX_QUIZZES,
+        },
       };
     });
   }

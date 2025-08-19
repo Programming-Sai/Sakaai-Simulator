@@ -41,10 +41,10 @@ export default function Home() {
     }
     if (
       !optionsPerQuestion ||
-      optionsPerQuestion < 4 ||
+      optionsPerQuestion < 2 ||
       optionsPerQuestion > 8
     ) {
-      return "Options per question must be between 4 and 8.";
+      return "Options per question must be between 2 and 8.";
     }
     return null;
   }
@@ -72,13 +72,19 @@ export default function Home() {
     };
 
     const res = await generateQuiz(payload);
+    let errorMsg = `Failed to generate quiz. Status: ${res.status}`;
+
     if (!res.ok) {
-      setError("Failed to generate quiz. Check console for details.");
+      errorMsg += ` | ${res.error}`;
     } else {
       // success — your context now has quizzes and history
       router.push(`/quiz?genId=${encodeURIComponent(res.generationId)}`);
-      console.log("Generated successfully", res.json);
+      console.log("Generated successfully", res.error);
     }
+
+    // setError(errorMsg);
+    console.error(errorMsg);
+    return;
   }
 
   return (
@@ -111,7 +117,7 @@ export default function Home() {
         <input
           type="number"
           max={8}
-          min={4}
+          min={2}
           className={styles.number}
           value={optionsPerQuestion}
           onChange={(e) => setOptionsPerQuestion(e.target.value)}

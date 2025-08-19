@@ -89,3 +89,15 @@
 .qtcontainer:focus-within .options {
   display: flex; /* show when the container or its children are focused */
 }
+
+@media (max-width: 768px) {
+  .selected span p,
+  .selected span div {
+    font-size: 0.7rem;
+  }
+
+  .selected span div {
+    width: 20;
+    height: 20;
+  }
+}
