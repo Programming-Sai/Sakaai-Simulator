@@ -53,6 +53,40 @@
   padding: 20px;
   color: var(--text);
   font: inherit;
+  --scroll-thumb: var(--muted); /* red thumb color */
+  --scroll-thumb-hover: var(--muted);
+  --scroll-track: transparent; /* track background (transparent) */
+  --scroll-radius: 8px; /* rounded thumb radius */
+  --scroll-width: 10px; /* width for vertical scrollbar */
+}
+
+/* WebKit-based browsers */
+.generate::-webkit-scrollbar {
+  width: var(--scroll-width); /* vertical scrollbar width */
+  height: var(--scroll-width); /* horizontal scrollbar height */
+  background: transparent; /* fallback track bg */
+}
+.generate::-webkit-scrollbar-track {
+  background: var(--scroll-track); /* transparent track */
+}
+.generate::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb); /* red thumb */
+  border-radius: var(--scroll-radius);
+  border: 2px solid transparent; /* gives a little breathing room */
+  background-clip: padding-box; /* keep rounded corners crisp */
+}
+.generate::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* Optional: hide arrow buttons (old IE/Edge) */
+.generate::-webkit-scrollbar-button {
+  display: none;
+}
+
+.generate::-webkit-resizer {
+  background-color: var(--panel);
+  border-bottom-right-radius: 20px;
 }
 
 .error {
@@ -85,6 +119,10 @@
   place-content: center;
 }
 
+.errorBox {
+  color: rgba(255, 0, 0, 0.6);
+}
+
 @media (max-width: 1024px) {
   .generate {
     width: 90%;
@@ -104,5 +142,9 @@
   }
   .checkBox label:last-child {
     text-align: right;
+  }
+  .errorBox {
+    font-size: 0.7rem;
+    margin-bottom: 2rem;
   }
 }

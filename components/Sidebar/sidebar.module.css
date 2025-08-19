@@ -25,6 +25,35 @@
   overflow-x: hidden;
   padding: 6px;
   padding-right: 0 !important;
+  --scroll-thumb: var(--muted); /* red thumb color */
+  --scroll-thumb-hover: var(--muted);
+  --scroll-track: transparent; /* track background (transparent) */
+  --scroll-radius: 8px; /* rounded thumb radius */
+  --scroll-width: 10px; /* width for vertical scrollbar */
+}
+
+/* WebKit-based browsers */
+.list::-webkit-scrollbar {
+  width: var(--scroll-width); /* vertical scrollbar width */
+  height: var(--scroll-width); /* horizontal scrollbar height */
+  background: transparent; /* fallback track bg */
+}
+.list::-webkit-scrollbar-track {
+  background: var(--scroll-track); /* transparent track */
+}
+.list::-webkit-scrollbar-thumb {
+  background: var(--scroll-thumb); /* red thumb */
+  border-radius: var(--scroll-radius);
+  border: 2px solid transparent; /* gives a little breathing room */
+  background-clip: padding-box; /* keep rounded corners crisp */
+}
+.list::-webkit-scrollbar-thumb:hover {
+  background: var(--scroll-thumb-hover);
+}
+
+/* Optional: hide arrow buttons (old IE/Edge) */
+.list::-webkit-scrollbar-button {
+  display: none;
 }
 
 /* each item fills the container width and controls padding/hover */

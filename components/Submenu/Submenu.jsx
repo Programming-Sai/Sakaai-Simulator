@@ -5,10 +5,13 @@ import { createPortal } from "react-dom";
 import styles from "./submenu.module.css";
 import { useData } from "@/context/DataContext";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/context/ToastContext";
 
 export default function Submenu({ genId, anchorRect, onClose, children }) {
   const { deleteGeneration } = useData();
   const router = useRouter();
+
+  const { add: toast } = useToast();
 
   // Safety: do not render on server
   if (typeof document === "undefined") return null;
@@ -90,7 +93,14 @@ export default function Submenu({ genId, anchorRect, onClose, children }) {
         <div
           className={styles.item}
           onClick={() => {
-            if (confirm("Delete this quiz?")) deleteGeneration(genId);
+            if (confirm("Delete this quiz?")) {
+              try {
+                deleteGeneration(genId);
+                toast("success", "Quiz Deleted Successfully");
+              } catch (e) {
+                toast("error", "Failed to Delete Quiz");
+              }
+            }
             onClose();
           }}
           style={{ color: "rgba(255,0,0,0.9)" }}

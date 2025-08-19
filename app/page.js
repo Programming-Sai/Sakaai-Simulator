@@ -1,6 +1,6 @@
 // app/page.js
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import { useData } from "@/context/DataContext";
 import { QuizTypeSelector } from "@/components/QiuzTypeSelector/QuizTypeSelector";
@@ -24,12 +24,17 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   function validate() {
-    if (
-      !numQuestions ||
-      numQuestions < 1 ||
-      numQuestions > data?.config?.max_number_of_questions_per_generation ||
-      30
-    ) {
+    const max =
+      (data && Number(data.config?.max_number_of_questions_per_generation)) ||
+      30;
+
+    const n = Number(numQuestions);
+    if (!Number.isInteger(n) || n < 1 || n > max) {
+      console.log(
+        "Current Question Count: ",
+        numQuestions,
+        data?.config?.max_number_of_questions_per_generation
+      );
       return `Number of questions must be between 1 and ${
         data?.config?.max_number_of_questions_per_generation || 30
       }.`;
@@ -143,6 +148,12 @@ export default function Home() {
           placeholder="eg. Generate some questions on Linked List ..."
           value={instructions}
           onChange={(e) => setInstructions(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSubmit(e);
+            }
+          }}
         />
         {error && <div className={styles.errorBox}>{error}</div>}
 
