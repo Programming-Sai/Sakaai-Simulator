@@ -11,6 +11,7 @@ class SupportedFileType(str, Enum):
     pdf = "pdf"
     docx = "docx"
     txt = "txt"
+    pptx = "pptx"
     md = "md"
     # png = "png"
     # jpg = "jpg"

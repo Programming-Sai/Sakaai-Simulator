@@ -9,6 +9,7 @@ python-multipart==0.0.20
 langchain-core==0.3.72
 slowapi==0.1.9
 langchain-community==0.3.27
+# unstructured[pdf,docx,pptx]==0.18.11
 # RapidFuzz==3.13.0
 # textstat==0.7.8
 # tiktoken==0.10.0
