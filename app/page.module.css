@@ -6,6 +6,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
 }
 
 .params {
@@ -48,11 +49,12 @@
   border: none;
   outline: none;
   width: 50vw;
-  height: 100px;
+  max-height: 200px;
   border-radius: 20px;
   padding: 20px;
   color: var(--text);
   font: inherit;
+  resize: none;
   --scroll-thumb: var(--muted); /* red thumb color */
   --scroll-thumb-hover: var(--muted);
   --scroll-track: transparent; /* track background (transparent) */

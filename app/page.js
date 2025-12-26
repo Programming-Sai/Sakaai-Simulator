@@ -87,6 +87,11 @@ export default function Home() {
     return;
   }
 
+  function autoResize(e) {
+    e.target.style.height = "auto";
+    e.target.style.height = `${e.target.scrollHeight}px`;
+  }
+
   return (
     <div className={styles.setupContainer}>
       {/* <Link href="/feedback">FeedBack From Home</Link> */}
@@ -153,9 +158,12 @@ export default function Home() {
           className={styles.generate}
           placeholder="eg. Generate some questions on Linked List ..."
           value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
+          onChange={(e) => {
+            setInstructions(e.target.value);
+            autoResize(e);
+          }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               onSubmit(e);
             }
