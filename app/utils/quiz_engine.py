@@ -268,8 +268,8 @@ def generate_quiz(input_data: Dict[str, Any], ctx: RequestContext) -> QuizGenera
                     continue
 
                 # Skip permanently decommissioned models
-                if code == "model_decommissioned":
-                    print(f"Skipping decommissioned model: {used_model}")
+                if code in ["model_decommissioned", "model_not_found"]:
+                    print(f"Skipping decommissioned or non-existent model: {used_model}")
                     last_error = err_obj or {}
                     _rotate_model_if_needed(err_obj)
                     continue
