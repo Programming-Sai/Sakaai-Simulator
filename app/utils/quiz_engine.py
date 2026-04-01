@@ -109,7 +109,7 @@ SUPPORTED_GROQ_MODELS = [
 # Thread-safe globals for model rotation
 _groq_lock = threading.Lock()
 _current_llm: ChatGroq | None = None
-_current_model: str = SUPPORTED_GROQ_MODELS[0]
+_current_model: str = SUPPORTED_GROQ_MODELS[8]
 
 # Schema retry count
 MAX_RETRIES = int(os.getenv("MAX_RETRIES", "1"))
